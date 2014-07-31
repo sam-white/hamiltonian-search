@@ -26,7 +26,12 @@
 
 ;; Define function terminals (x and a random constant).
 (def terminals
-  [(constantly 'x)
+  [(constantly 'theta)
+   (constantly 'theta-dot)
+   ;(constantly 'x)
+   ;(constantly 'theta0)
+   ;(constantly 'length)
+   ;(constantly 'grav-acc)   
    #(* 2 (rand))])
 
 
@@ -41,6 +46,7 @@
 
 ;; Function that generates a data set from a given s-expression.
 (defn functionalise [ex] (eval (list 'fn '[x] ex)))
+(defn functionalise-theta [ex] (eval (list 'fn ['theta 'theta-dot]  ex)))
 
 ;; Numerically differentiate data set using a two point evaluation.
 (defn vector-coords
@@ -88,14 +94,29 @@
     1))
 
 ;; First parameter to be optimised.
-(defn score-1
+(defn score-1a
   "This function calculates how well a candidate expression fits a supplied data set. This is
    calculated using a modified chi squared test. A score of zero refers to an expression
    that perfectly describes the data set. A score much below zero refers to an expression
    that poorly describes the data set."
-  [data ex]
-  (let [f (functionalise ex)]
-    (* -1 (apply + (map #(Math/abs (- (f (first %)) (second %))) data)))))
+  [data symbolic-derivative ex]
+  (let [d-by-dtheta (symbolic-derivative ex 'theta)
+        d-by-dtheta-dot (symbolic-derivative ex 'theta-dot)
+        partial-derivs-ratio (list 'pdiv d-by-dtheta-dot d-by-dtheta)
+        f (functionalise-theta partial-derivs-ratio)]
+    (* -1 (apply + (map #(Math/abs (float (- (f (second %) (nth % 2)) (first %)))) data)))))
+
+(defn score-1b
+  "This function calculates how well a candidate expression fits a supplied data set. This is
+   calculated using a modified chi squared test. A score of zero refers to an expression
+   that perfectly describes the data set. A score much below zero refers to an expression
+   that poorly describes the data set."
+  [data symbolic-derivative ex]
+  (let [d-by-dtheta (symbolic-derivative ex 'theta)
+        d-by-dtheta-dot (symbolic-derivative ex 'theta-dot)
+        partial-derivs-ratio (list 'pdiv d-by-dtheta d-by-dtheta-dot)
+        f (functionalise-theta partial-derivs-ratio)]
+    (* -1 (apply + (map #(Math/abs (float (- (f (second %) (nth % 2)) (first %)))) data)))))
 
 ;; Second parameter to be optimised.
 (defn score-2
@@ -128,13 +149,18 @@
 
 ;; Map fitness values onto an expression.
 (defn score-population
-  [population score-1-func score-2-func]
+  [population score-1a-func score-1b-func score-2-func]
   (map (fn [expr] {:expr expr 
-                   :score-1 (score-1-func expr) 
+                   :score-1a (score-1a-func expr)
+                   :score-1b (score-1b-func expr)
                    :score-2 (score-2-func expr) 
                    :dominated false
                    :fitness 0})
        population))
+
+(defn symbolic-derivative
+  [expr variable]
+  (deriv expr variable))
 
 ;; Determine if one expression is dominated by another expression. 
 (defn is-dominated
@@ -142,9 +168,30 @@
    An expression is dominated if both score-1 and score-2 of a comparison
    expression is better. "
   [x y]
-  (if (or (and (<= (:score-1 x) (:score-1 y)) (< (:score-2 x) (:score-2 y))) 
-          (and (< (:score-1 x) (:score-1 y)) (<= (:score-2 x) (:score-2 y))))
+  (if (or (and (<= (:score-1a x) (:score-1a y)) (< (:score-1b x) (:score-1b y)) (< (:score-2 x) (:score-2 y)))
+          (and (< (:score-1a x) (:score-1a y)) (<= (:score-1b x) (:score-1b y)) (< (:score-2 x) (:score-2 y))) 
+          (and (< (:score-1a x) (:score-1a y)) (< (:score-1b x) (:score-1b y)) (<= (:score-2 x) (:score-2 y))))
     (assoc x :dominated true) x))
+
+;; Determine if one expression is dominated by another expression (ignoring score 1b). 
+(defn is-dominated-1a
+  "This function tests whether expression x is dominated by function y.
+   An expression is dominated if both score-1 and score-2 of a comparison
+   expression is better. "
+  [x y]
+  (if (or (and (<= (:score-1a x) (:score-1a y)) (< (:score-2 x) (:score-2 y))) 
+          (and (< (:score-1a x) (:score-1a y)) (<= (:score-2 x) (:score-2 y))))
+     (assoc x :dominated true) x))
+
+;; Determine if one expression is dominated by another expression (ignoring score 1a). 
+(defn is-dominated-1b
+  "This function tests whether expression x is dominated by function y.
+   An expression is dominated if both score-1 and score-2 of a comparison
+   expression is better. "
+  [x y]
+  (if (or (and (<= (:score-1b x) (:score-1b y)) (< (:score-2 x) (:score-2 y))) 
+          (and (< (:score-1b x) (:score-1b y)) (<= (:score-2 x) (:score-2 y))))
+     (assoc x :dominated true) x))
 
 ;; Determine whether a function should go into the archive.
 (defn should-be-archived
@@ -164,13 +211,14 @@
 (defn remove-repeats
   "Remove expressions that are non-identical yet have the same fitness value."
   [c-archive p-point]
-(rand-nth (filter #(and (= (second p-point) (:score-1 %))
-                     (= (first p-point) (:score-2 %))) c-archive)))
+(rand-nth (filter #(and (= (nth p-point 2) (:score-1b %))
+                        (= (second p-point) (:score-1a %))
+                        (= (first p-point) (:score-2 %))) c-archive)))
 
 (defn extract-coords
-  "extract score-1 and score-2 from a scored individual and place into a list of coordinates."
+  "extract score-1a, score-1b and score-2 from a scored individual and place into a list of coordinates."
   [indv]
- (list (:score-2 indv) (:score-1 indv)))
+ (list (:score-2 indv) (:score-1a indv) (:score-1b indv)))
 
 
 ;--------------------------------------------------------------------------------------------------------------------------------------------------
@@ -183,7 +231,9 @@
   (assoc archive :fitness 
                   (/ 
                    (count 
-                    (filter #(and (>= (:score-1 archive) (:score-1 %)) (>= (:score-2 archive) (:score-2 %))) popn))
+                    (filter #(and (>= (:score-1a archive) (:score-1a %))
+                                  (>= (:score-1b archive) (:score-1b %))
+                                  (>= (:score-2 archive) (:score-2 %))) popn))
                     (+ 1 (count popn)))))
 
 (defn sum-strengths
@@ -197,7 +247,10 @@
   [popn scored-archive]
   (assoc popn 
     :fitness (+ 1 
-              (sum-strengths (filter #(and (<= (:score-1 popn) (:score-1 %)) (<= (:score-2 popn) (:score-2 %))) scored-archive)))))
+              (sum-strengths (filter #(and (<= (:score-1a popn) (:score-1a %)) 
+                                           (<= (:score-1b popn) (:score-1b %))
+                                           (<= (:score-2 popn) (:score-2 %)))
+                                    scored-archive)))))
 
 ;; Define tournament selection function. 
 (defn tournament-selector
@@ -216,7 +269,8 @@
   "This function calculates the Euclidean distance between two individuals, x and y."
   [x y]
   (Math/sqrt
-   (+ (* (- (:score-1 x) (:score-1 y)) (- (:score-1 x) (:score-1 y)))
+   (+ (* (- (:score-1a x) (:score-1a y)) (- (:score-1a x) (:score-1a y)))
+      (* (- (:score-1b x) (:score-1b y)) (- (:score-1b x) (:score-1b y)))
       (* (- (:score-2 x) (:score-2 y)) (- (:score-2 x) (:score-2 y))))))
 
 ;; gen-map is a map of every expression in the archive and the Euclidean distance
@@ -251,7 +305,7 @@
 ;; of individuals is discarded. Thus, the archive set is reduced by 1.
 (defn thin-archive
   "Select new-member by selecting a random individual from closest pair calculated with
-find-min-distance. Remove other member of pair from archive. Add new-member back into the archive."
+  find-min-distance. Remove other member of pair from archive. Add new-member back into the archive."
   [find-min-distance distance-calcs c-archive]
   (let [shortest-distance (find-min-distance distance-calcs c-archive)
         new-member (rand-nth (flatten (map #(if (or (= (:first-expr shortest-distance) (:expr %))
