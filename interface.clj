@@ -16,6 +16,7 @@
 (use 'sym-regression-project.render :reload)
 (use 'sym-regression-project.core :reload)
 (use 'sym-regression-project.symbolic :reload)
+(use 'sym-regression-project.algebra :reload)
 (require '[clojure.java.io :as io])
 (use '[clojure.core.match :only (match)])
 ;; @@
@@ -24,148 +25,17 @@
 ;; <=
 
 ;; @@
-(defn trig-approx
- [expr]
-  (let [ex (vec expr)]
-  (match [(first ex) (second ex)]
-     ['Math/cos a] (list '- 1 (list '* 0.5 (list '* a a)))
-     ['Math/sin a] (list 'Math/sin a)
-     [_ _] expr)))
-;; @@
-;; =>
-;;; {"type":"html","content":"<span class='clj-var'>#&#x27;user/trig-approx</span>","value":"#'user/trig-approx"}
-;; <=
-
-;; @@
-(defn ident
-  [expr]
-  (if (false? (zip/end? expr))
-              (if (= (count-nodes (first expr)) 2)
-              (ident (zip/next (replace expr (trig-approx (first expr))))) (ident (zip/next expr)))
-         (zip/root expr)))
-;; @@
-;; =>
-;;; {"type":"html","content":"<span class='clj-var'>#&#x27;user/ident</span>","value":"#'user/ident"}
-;; <=
-
-;; @@
-(defn find-trig
-  [expr]
-  (cond (true? (zip/end? expr)) (zip/root expr)
-        (false? (zip/end? expr)) (if (is-cos? (first expr))
-                                   (bottom-of-tree expr) (find-trig (zip/next expr)))))
-        
-;; @@
-;; =>
-;;; {"type":"html","content":"<span class='clj-var'>#&#x27;user/find-trig</span>","value":"#'user/find-trig"}
-;; <=
-
-;; @@
-(defn is-cos?
-  [expr]
-  (if (seq? expr)
-    (let [ex (vec expr)]
-    (match [(first ex)]
-      ['Math/cos] true
-      [_] false )) false))
-;; @@
-;; =>
-;;; {"type":"html","content":"<span class='clj-var'>#&#x27;user/is-cos?</span>","value":"#'user/is-cos?"}
-;; <=
-
-;; @@
-(defn children?
-  [expr]
-  (if (not (= nil (zip/children expr)))
-    true false))
-;; @@
-;; =>
-;;; {"type":"html","content":"<span class='clj-var'>#&#x27;user/children?</span>","value":"#'user/children?"}
-;; <=
-
-;; @@
-(defn right-sibling?
-  [expr]
-  (if (not (= nil (zip/right expr)))
-  true false))
-;; @@
-;; =>
-;;; {"type":"html","content":"<span class='clj-var'>#&#x27;user/right-sibling?</span>","value":"#'user/right-sibling?"}
-;; <=
-
-;; @@
-(defn bottom-of-tree
-  [expr]
-  (if (children? expr)
-    (bottom-of-tree (zip/down expr)) (if (right-sibling? expr)
-                                  (bottom-of-tree (zip/right expr)) (traverse-up-tree expr))))
-;; @@
-;; =>
-;;; {"type":"html","content":"<span class='clj-var'>#&#x27;user/bottom-of-tree</span>","value":"#'user/bottom-of-tree"}
-;; <=
-
-;; @@
-(defn is-root?
- [expr]
- (if (= nil (zip/up expr))
-   true false))
-;; @@
-;; =>
-;;; {"type":"html","content":"<span class='clj-var'>#&#x27;user/is-root?</span>","value":"#'user/is-root?"}
-;; <=
-
-;; @@
-(defn traverse-up-tree
-  [expr]
-  (if (is-cos? (first expr))
-    (zip/root (replace expr (trig-approx (first expr)))) (if (is-root? (zip/up expr))
-                                                          (zip/root (replace (zip/up expr) (trig-approx (first (zip/up expr)))))                                                 (traverse-up-tree (zip/up expr)))))
-;; @@
-;; =>
-;;; {"type":"html","content":"<span class='clj-var'>#&#x27;user/traverse-up-tree</span>","value":"#'user/traverse-up-tree"}
-;; <=
-
-;; @@
- (def example (expr-zip '(* (Math/cos (* 2 x)) (Math/cos (Math/cos x)))))
+(def example (expr-zip '(* (Math/cos (* l a)) (Math/cos (* l a)))))
 ;; @@
 ;; =>
 ;;; {"type":"html","content":"<span class='clj-var'>#&#x27;user/example</span>","value":"#'user/example"}
 ;; <=
 
 ;; @@
-(find-trig example)
+(find-and-replace-cos example)
 ;; @@
 ;; =>
-;;; {"type":"list-like","open":"<span class='clj-list'>(</span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>*</span>","value":"*"},{"type":"list-like","open":"<span class='clj-list'>(</span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>-</span>","value":"-"},{"type":"html","content":"<span class='clj-long'>1</span>","value":"1"},{"type":"list-like","open":"<span class='clj-list'>(</span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>*</span>","value":"*"},{"type":"html","content":"<span class='clj-double'>0.5</span>","value":"0.5"},{"type":"list-like","open":"<span class='clj-list'>(</span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>*</span>","value":"*"},{"type":"list-like","open":"<span class='clj-list'>(</span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>*</span>","value":"*"},{"type":"html","content":"<span class='clj-long'>2</span>","value":"2"},{"type":"html","content":"<span class='clj-symbol'>x</span>","value":"x"}],"value":"(* 2 x)"},{"type":"list-like","open":"<span class='clj-list'>(</span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>*</span>","value":"*"},{"type":"html","content":"<span class='clj-long'>2</span>","value":"2"},{"type":"html","content":"<span class='clj-symbol'>x</span>","value":"x"}],"value":"(* 2 x)"}],"value":"(* (* 2 x) (* 2 x))"}],"value":"(* 0.5 (* (* 2 x) (* 2 x)))"}],"value":"(- 1 (* 0.5 (* (* 2 x) (* 2 x))))"},{"type":"list-like","open":"<span class='clj-list'>(</span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>Math/cos</span>","value":"Math/cos"},{"type":"list-like","open":"<span class='clj-list'>(</span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>Math/cos</span>","value":"Math/cos"},{"type":"html","content":"<span class='clj-symbol'>x</span>","value":"x"}],"value":"(Math/cos x)"}],"value":"(Math/cos (Math/cos x))"}],"value":"(* (- 1 (* 0.5 (* (* 2 x) (* 2 x)))) (Math/cos (Math/cos x)))"}
-;; <=
-
-;; @@
-(ident (expr-zip '(* x (Math/cos x))))
-;; @@
-;; =>
-;;; {"type":"list-like","open":"<span class='clj-list'>(</span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>*</span>","value":"*"},{"type":"html","content":"<span class='clj-symbol'>x</span>","value":"x"},{"type":"list-like","open":"<span class='clj-list'>(</span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>-</span>","value":"-"},{"type":"html","content":"<span class='clj-long'>1</span>","value":"1"},{"type":"list-like","open":"<span class='clj-list'>(</span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>*</span>","value":"*"},{"type":"html","content":"<span class='clj-double'>0.5</span>","value":"0.5"},{"type":"list-like","open":"<span class='clj-list'>(</span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>*</span>","value":"*"},{"type":"html","content":"<span class='clj-symbol'>x</span>","value":"x"},{"type":"html","content":"<span class='clj-symbol'>x</span>","value":"x"}],"value":"(* x x)"}],"value":"(* 0.5 (* x x))"}],"value":"(- 1 (* 0.5 (* x x)))"}],"value":"(* x (- 1 (* 0.5 (* x x))))"}
-;; <=
-
-;; @@
- (defn limit-size
-   [expr max-nodes]
-   (if (> (count-nodes expr) max-nodes)
- (limit-size (tree-replace expr (rand-int (count-nodes expr)) (rand)) max-nodes) expr))
-;; @@
-;; =>
-;;; {"type":"html","content":"<span class='clj-var'>#&#x27;user/limit-size</span>","value":"#'user/limit-size"}
-;; <=
-
-;; @@
-(defn read-from-file [filename]
-  "Function that reads from a file specified by filename"
-	  (with-open [r (java.io.PushbackReader.
-	                 (clojure.java.io/reader filename))]
-	    (binding [*read-eval* false]
-	      (read r))))
-;; @@
-;; =>
-;;; {"type":"html","content":"<span class='clj-var'>#&#x27;user/read-from-file</span>","value":"#'user/read-from-file"}
+;;; {"type":"list-like","open":"<span class='clj-list'>(</span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>*</span>","value":"*"},{"type":"list-like","open":"<span class='clj-list'>(</span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>-</span>","value":"-"},{"type":"html","content":"<span class='clj-long'>1</span>","value":"1"},{"type":"list-like","open":"<span class='clj-list'>(</span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>*</span>","value":"*"},{"type":"html","content":"<span class='clj-double'>0.5</span>","value":"0.5"},{"type":"list-like","open":"<span class='clj-list'>(</span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>*</span>","value":"*"},{"type":"list-like","open":"<span class='clj-list'>(</span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>*</span>","value":"*"},{"type":"html","content":"<span class='clj-symbol'>l</span>","value":"l"},{"type":"html","content":"<span class='clj-symbol'>a</span>","value":"a"}],"value":"(* l a)"},{"type":"list-like","open":"<span class='clj-list'>(</span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>*</span>","value":"*"},{"type":"html","content":"<span class='clj-symbol'>l</span>","value":"l"},{"type":"html","content":"<span class='clj-symbol'>a</span>","value":"a"}],"value":"(* l a)"}],"value":"(* (* l a) (* l a))"}],"value":"(* 0.5 (* (* l a) (* l a)))"}],"value":"(- 1 (* 0.5 (* (* l a) (* l a))))"},{"type":"list-like","open":"<span class='clj-list'>(</span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>Math/cos</span>","value":"Math/cos"},{"type":"list-like","open":"<span class='clj-list'>(</span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>*</span>","value":"*"},{"type":"html","content":"<span class='clj-symbol'>l</span>","value":"l"},{"type":"html","content":"<span class='clj-symbol'>a</span>","value":"a"}],"value":"(* l a)"}],"value":"(Math/cos (* l a))"}],"value":"(* (- 1 (* 0.5 (* (* l a) (* l a)))) (Math/cos (* l a)))"}
 ;; <=
 
 ;; **
@@ -281,7 +151,6 @@
     
      (if (= (rem generation-number report-num) 0) (println generation) ())
      
-    ; uncomment for indication of thinning time.
     ;(time (thinning-done thin-archive find-min-distance distance-calcs checked-archive archive-size max-archive-size))
     ;(println ave-nodes)
     ;(println stdev)

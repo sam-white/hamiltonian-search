@@ -322,6 +322,21 @@
   (last (take (+ (- archive-size max-archive-size) 1)
         (iterate #(thin-archive find-min-distance distance-calcs %) c-archive))) c-archive))
 
+;-------------------------------------------------------------------------------------------------------
+ (defn limit-size
+   "A function designed to replace a random subtree with a random constant when the number
+    of nodes in an expressions exceeds max-nodes."
+   [expr max-nodes]
+   (if (> (count-nodes expr) max-nodes)
+ (limit-size (tree-replace expr (rand-int (count-nodes expr)) (rand)) max-nodes) expr))
+
+(defn read-from-file [filename]
+  "Function that reads from a file specified by filename"
+	  (with-open [r (java.io.PushbackReader.
+	                 (clojure.java.io/reader filename))]
+	    (binding [*read-eval* false]
+	      (read r))))
+
 
 
 
