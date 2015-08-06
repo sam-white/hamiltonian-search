@@ -5,4 +5,4 @@
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [expresso "0.2.0"]
                  [org.clojure/core.match "0.2.1"]]
-  :plugins [[lein-gorilla "0.3.2"]])
+  :plugins [[lein-gorilla "0.3.4"]])
