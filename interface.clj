@@ -15,48 +15,48 @@
 (use '[gorilla-repl table html])
 (use 'sym-regression-project.render :reload)
 (use 'sym-regression-project.core :reload)
-(use 'sym-regression-project.symbolic :reload)
-(use 'sym-regression-project.algebra :reload)
 (require '[clojure.java.io :as io])
-(use '[clojure.core.match :only (match)])
 ;; @@
 ;; =>
 ;;; {"type":"html","content":"<span class='clj-nil'>nil</span>","value":"nil"}
 ;; <=
+
+;; @@
+(defn read-from-file [filename]
+  "Function that reads from a file specified by filename"
+	  (with-open [r (java.io.PushbackReader.
+	                 (clojure.java.io/reader filename))]
+	    (binding [*read-eval* false]
+	      (read r))))
+;; @@
+;; =>
+;;; {"type":"html","content":"<span class='clj-var'>#&#x27;user/read-from-file</span>","value":"#'user/read-from-file"}
+;; <=
+
+;; @@
+(io/delete-file "data.txt")
+;; @@
 
 ;; **
 ;;; Define a test function.
 ;; **
 
 ;; @@
-(def theta (read-from-file "../../../../media/USB2/data/dis2.txt"))
-(def theta-dot (read-from-file "../../../../media/USB2/data/vel2.txt"))
-(def theta-double-dot (read-from-file "../../../../media/USB2/data/acc2.txt"))
-(slurp "../../../../media/USB2/data/run2.txt")
+(def domain-step 1)
+
+;(def data (doall (map (fn [x] [x (+ (* 3 x) (* 2 x x))]) (range 0 10 0.5))))
+;(def data (doall (map (fn [x] [x (Math/sin x)]) (range 0 10 domain-step))))
+(def data (doall (map (fn [x] [x (* (+ x 3) (+ x 3) (- x 3))]) (range -10 10 domain-step))))
 ;; @@
 ;; =>
-;;; {"type":"html","content":"<span class='clj-string'>&quot;(\\&quot;theta0\\&quot;, 0.5)\\n(\\&quot;l\\&quot;, 4.9)\\n&quot;</span>","value":"\"(\\\"theta0\\\", 0.5)\\n(\\\"l\\\", 4.9)\\n\""}
+;;; {"type":"html","content":"<span class='clj-var'>#&#x27;user/data</span>","value":"#'user/data"}
 ;; <=
 
 ;; @@
-;numerical derivatives, Note that the differentiation accuracy is currently poor, therefore use analytically derived derivatives.
-
-;(def dfdt-coords (numerical-derivative theta domain-step))
-;(def dfdt (map #(second %) dfdt-coords))
-
-;(def dgdt-coords (numerical-derivative theta-dot domain-step))
-;(def dgdt (map #(second %) dgdt-coords))
-
-;(def first-deriv-pair (map #(list (/ %1 %2) (second %3) (second %4) (first %4)) dfdt dgdt theta theta-dot))
-;(def second-deriv-pair (map #(list (/ %1 %2) (second %3) (second %4) (first %4)) dgdt dfdt theta theta-dot))
-
-; Analytical derivatives for theta and theta-dot
-
-(def first-deriv-pair (map #(list (pdiv (second %1) (second %2)) (second %3) (second %4) (first %4)) theta-dot theta-double-dot theta theta-dot))
-(def second-deriv-pair (map #(list (pdiv (second %2) (second %1)) (second %3) (second %4) (first %4)) theta-dot theta-double-dot theta theta-dot))
+(list-plot data)
 ;; @@
 ;; =>
-;;; {"type":"html","content":"<span class='clj-var'>#&#x27;user/second-deriv-pair</span>","value":"#'user/second-deriv-pair"}
+;;; {"type":"vega","content":{"axes":[{"type":"x","scale":"x"},{"type":"y","scale":"y"}],"scales":[{"name":"x","type":"linear","range":"width","zero":false,"domain":{"data":"219a04d2-2ca7-4c78-ae8b-f2ba173568dc","field":"data.x"}},{"name":"y","type":"linear","range":"height","nice":true,"zero":false,"domain":{"data":"219a04d2-2ca7-4c78-ae8b-f2ba173568dc","field":"data.y"}}],"marks":[{"type":"symbol","from":{"data":"219a04d2-2ca7-4c78-ae8b-f2ba173568dc"},"properties":{"enter":{"x":{"field":"data.x","scale":"x"},"y":{"field":"data.y","scale":"y"},"fill":{"value":"steelblue"},"fillOpacity":{"value":1}},"update":{"shape":"circle","size":{"value":70},"stroke":{"value":"transparent"}},"hover":{"size":{"value":210},"stroke":{"value":"white"}}}}],"data":[{"name":"219a04d2-2ca7-4c78-ae8b-f2ba173568dc","values":[{"x":-10,"y":-637},{"x":-9,"y":-432},{"x":-8,"y":-275},{"x":-7,"y":-160},{"x":-6,"y":-81},{"x":-5,"y":-32},{"x":-4,"y":-7},{"x":-3,"y":0},{"x":-2,"y":-5},{"x":-1,"y":-16},{"x":0,"y":-27},{"x":1,"y":-32},{"x":2,"y":-25},{"x":3,"y":0},{"x":4,"y":49},{"x":5,"y":128},{"x":6,"y":243},{"x":7,"y":400},{"x":8,"y":605},{"x":9,"y":864}]}],"width":400,"height":247.2187957763672,"padding":{"bottom":20,"top":10,"right":10,"left":50}},"value":"#gorilla_repl.vega.VegaView{:content {:axes [{:type \"x\", :scale \"x\"} {:type \"y\", :scale \"y\"}], :scales [{:name \"x\", :type \"linear\", :range \"width\", :zero false, :domain {:data \"219a04d2-2ca7-4c78-ae8b-f2ba173568dc\", :field \"data.x\"}} {:name \"y\", :type \"linear\", :range \"height\", :nice true, :zero false, :domain {:data \"219a04d2-2ca7-4c78-ae8b-f2ba173568dc\", :field \"data.y\"}}], :marks [{:type \"symbol\", :from {:data \"219a04d2-2ca7-4c78-ae8b-f2ba173568dc\"}, :properties {:enter {:x {:field \"data.x\", :scale \"x\"}, :y {:field \"data.y\", :scale \"y\"}, :fill {:value \"steelblue\"}, :fillOpacity {:value 1}}, :update {:shape \"circle\", :size {:value 70}, :stroke {:value \"transparent\"}}, :hover {:size {:value 210}, :stroke {:value \"white\"}}}}], :data [{:name \"219a04d2-2ca7-4c78-ae8b-f2ba173568dc\", :values ({:x -10, :y -637} {:x -9, :y -432} {:x -8, :y -275} {:x -7, :y -160} {:x -6, :y -81} {:x -5, :y -32} {:x -4, :y -7} {:x -3, :y 0} {:x -2, :y -5} {:x -1, :y -16} {:x 0, :y -27} {:x 1, :y -32} {:x 2, :y -25} {:x 3, :y 0} {:x 4, :y 49} {:x 5, :y 128} {:x 6, :y 243} {:x 7, :y 400} {:x 8, :y 605} {:x 9, :y 864})}], :width 400, :height 247.2188, :padding {:bottom 20, :top 10, :right 10, :left 50}}}"}
 ;; <=
 
 ;; **
@@ -66,70 +66,67 @@
 ;; @@
 (defn evolve
   [population config]
-  (let [{:keys [score-1a-func score-1b-func score-2-func mutation-new-tree-func tournament-size clone-n mutate-n cos-mutate-n crossover-n max-archive-size report-num max-nodes]} config
+  (let [{:keys [score-1-func score-2-func mutation-new-tree-func tournament-size clone-n mutate-n crossover-n max-archive-size
+                report-num]} config
        
-        generation-number (inc (:gen-num (first population)))
-        generation {:gen-num generation-number}        
-        popu-without-gen (if (not (nil? (:gen-num (first population)))) (drop 1 population) population)             
-        previous-archive (filter #(true? (:archived %)) popu-without-gen)        
-        objective-scored-popn (score-population (filter #(nil? (:archived %)) popu-without-gen) score-1a-func score-1b-func score-2-func)
+        generation-number (inc (:gen-num (first population))) 
+        generation {:gen-num generation-number}
         
-        archive (flatten (cons previous-archive (map #(merge {:archived true} %) (flatten (into-archive should-be-archived is-dominated objective-scored-popn objective-scored-popn)))))
+        popu-without-gen (if (not (nil? (:gen-num (first population)))) (drop 1 population) population)
+        previous-archive (filter #(true? (:archived %)) popu-without-gen)
         
-        c-archive (into () (distinct (flatten (into-archive should-be-archived is-dominated archive archive))))       
+        objective-scored-popn (score-population (filter #(nil? (:archived %)) popu-without-gen) score-1-func score-2-func)
+        archive (flatten (cons previous-archive (map #(merge  {:archived true} %) (flatten (into-archive should-be-archived is-dominated objective-scored-popn objective-scored-popn)))))
+        c-archive (into () (distinct (flatten (into-archive should-be-archived is-dominated archive archive))))
+       
+        ; insert function that removes different expressions with same score...
         archive-coords (distinct (map #(extract-coords %) c-archive))
         checked-archive (map #(remove-repeats c-archive %) archive-coords)
+        
+        
         archive-size (count checked-archive)
         thinned-archive (thinning-done thin-archive find-min-distance distance-calcs checked-archive archive-size max-archive-size)
-             
-  
+        
+        
+        
         scored-archive (map #(strength-func % objective-scored-popn) thinned-archive)
         scored-true-popn (map #(fitness-population % scored-archive) objective-scored-popn)
         population-for-selection (flatten (cons scored-archive scored-true-popn))
-        max-size (apply max (map #(count-nodes (:expr %)) population-for-selection))
-        
-                      
-        clones  (repeatedly clone-n #(tournament-selector population-for-selection tournament-size))
-        mutations (repeatedly mutate-n
-                              #(mutate-expr
+       
+        clones (repeatedly clone-n #(tournament-selector population-for-selection tournament-size))
+        mutations (repeatedly mutate-n 
+                              #(mutate-expr 
                                 (tournament-selector population-for-selection tournament-size)
                                 mutation-new-tree-func))
         crossovers (reduce into (repeatedly crossover-n
                                #(crossover-expr
                                  (tournament-selector population-for-selection tournament-size)
-                                 (tournament-selector population-for-selection tournament-size))))
-        
-        next-generation (into clones (into mutations crossovers))    
-        cos-transformed (map #(apply-cos-approx % cos-mutate-n) next-generation)]
+                                 (tournament-selector population-for-selection tournament-size))))]
     
      (if (= (rem generation-number report-num) 0) (println generation) ())
      
+    ; uncomment for indication of thinning time.
     ;(time (thinning-done thin-archive find-min-distance distance-calcs checked-archive archive-size max-archive-size))
-    ;(println ave-nodes)
-    ;(println stdev)
-    (println max-size)
     
     (spit "data.txt" population)
     
-    (cons generation (map #(limit-size % max-nodes) (into thinned-archive cos-transformed)))))
+    (cons generation (into thinned-archive (into clones (into mutations crossovers))))))
 ;; @@
 ;; =>
 ;;; {"type":"html","content":"<span class='clj-var'>#&#x27;user/evolve</span>","value":"#'user/evolve"}
 ;; <=
 
 ;; @@
-(def config {:score-1a-func (memoize #(score-1a first-deriv-pair symbolic-derivative %))
-             :score-1b-func (memoize #(score-1b second-deriv-pair symbolic-derivative %))
+(def config {
+             :score-1-func (memoize #(score-1 data %))
              :score-2-func (memoize #(score-2 count-nodes %))
              :mutation-new-tree-func #(random-full-tree functions terminals 3)
              :tournament-size 2
              :clone-n 40
              :crossover-n 25
              :mutate-n 10
-             :cos-mutate-n 10
              :max-archive-size 20
-             :report-num 1
-             :max-nodes 80})
+             :report-num 5})
 ;; @@
 ;; =>
 ;;; {"type":"html","content":"<span class='clj-var'>#&#x27;user/config</span>","value":"#'user/config"}
@@ -146,508 +143,210 @@
 
 ;; @@
 ;; Run algorithm and time (default loop 20 times).
-(time (def run-data (doall (take 250 (iterate #(evolve % config) init-pop)))))
+(time (def run-data (doall (take 1000 (iterate #(evolve % config) init-pop)))))
 ;; @@
 ;; ->
-;;; {:gen-num 2}
-;;; 15
-;;; {:gen-num 3}
-;;; 45
-;;; {:gen-num 4}
-;;; 71
 ;;; {:gen-num 5}
-;;; 71
-;;; {:gen-num 6}
-;;; 77
-;;; {:gen-num 7}
-;;; 72
-;;; {:gen-num 8}
-;;; 75
-;;; {:gen-num 9}
-;;; 77
 ;;; {:gen-num 10}
-;;; 73
-;;; {:gen-num 11}
-;;; 73
-;;; {:gen-num 12}
-;;; 52
-;;; {:gen-num 13}
-;;; 30
-;;; {:gen-num 14}
-;;; 79
 ;;; {:gen-num 15}
-;;; 22
-;;; {:gen-num 16}
-;;; 30
-;;; {:gen-num 17}
-;;; 33
-;;; {:gen-num 18}
-;;; 30
-;;; {:gen-num 19}
-;;; 40
 ;;; {:gen-num 20}
-;;; 40
-;;; {:gen-num 21}
-;;; 45
-;;; {:gen-num 22}
-;;; 18
-;;; {:gen-num 23}
-;;; 29
-;;; {:gen-num 24}
-;;; 30
 ;;; {:gen-num 25}
-;;; 23
-;;; {:gen-num 26}
-;;; 30
-;;; {:gen-num 27}
-;;; 39
-;;; {:gen-num 28}
-;;; 25
-;;; {:gen-num 29}
-;;; 53
 ;;; {:gen-num 30}
-;;; 23
-;;; {:gen-num 31}
-;;; 39
-;;; {:gen-num 32}
-;;; 56
-;;; {:gen-num 33}
-;;; 56
-;;; {:gen-num 34}
-;;; 64
 ;;; {:gen-num 35}
-;;; 56
-;;; {:gen-num 36}
-;;; 58
-;;; {:gen-num 37}
-;;; 67
-;;; {:gen-num 38}
-;;; 56
-;;; {:gen-num 39}
-;;; 66
 ;;; {:gen-num 40}
-;;; 58
-;;; {:gen-num 41}
-;;; 62
-;;; {:gen-num 42}
-;;; 69
-;;; {:gen-num 43}
-;;; 60
-;;; {:gen-num 44}
-;;; 66
 ;;; {:gen-num 45}
-;;; 77
-;;; {:gen-num 46}
-;;; 78
-;;; {:gen-num 47}
-;;; 78
-;;; {:gen-num 48}
-;;; 78
-;;; {:gen-num 49}
-;;; 77
 ;;; {:gen-num 50}
-;;; 79
-;;; {:gen-num 51}
-;;; 79
-;;; {:gen-num 52}
-;;; 77
-;;; {:gen-num 53}
-;;; 77
-;;; {:gen-num 54}
-;;; 80
 ;;; {:gen-num 55}
-;;; 77
-;;; {:gen-num 56}
-;;; 60
-;;; {:gen-num 57}
-;;; 58
-;;; {:gen-num 58}
-;;; 66
-;;; {:gen-num 59}
-;;; 66
 ;;; {:gen-num 60}
-;;; 74
-;;; {:gen-num 61}
-;;; 60
-;;; {:gen-num 62}
-;;; 67
-;;; {:gen-num 63}
-;;; 59
-;;; {:gen-num 64}
-;;; 80
 ;;; {:gen-num 65}
-;;; 68
-;;; {:gen-num 66}
-;;; 71
-;;; {:gen-num 67}
-;;; 77
-;;; {:gen-num 68}
-;;; 68
-;;; {:gen-num 69}
-;;; 60
 ;;; {:gen-num 70}
-;;; 64
-;;; {:gen-num 71}
-;;; 79
-;;; {:gen-num 72}
-;;; 73
-;;; {:gen-num 73}
-;;; 73
-;;; {:gen-num 74}
-;;; 73
 ;;; {:gen-num 75}
-;;; 73
-;;; {:gen-num 76}
-;;; 73
-;;; {:gen-num 77}
-;;; 56
-;;; {:gen-num 78}
-;;; 79
-;;; {:gen-num 79}
-;;; 65
 ;;; {:gen-num 80}
-;;; 73
-;;; {:gen-num 81}
-;;; 80
-;;; {:gen-num 82}
-;;; 59
-;;; {:gen-num 83}
-;;; 56
-;;; {:gen-num 84}
-;;; 65
 ;;; {:gen-num 85}
-;;; 59
-;;; {:gen-num 86}
-;;; 53
-;;; {:gen-num 87}
-;;; 58
-;;; {:gen-num 88}
-;;; 57
-;;; {:gen-num 89}
-;;; 51
 ;;; {:gen-num 90}
-;;; 75
-;;; {:gen-num 91}
-;;; 51
-;;; {:gen-num 92}
-;;; 51
-;;; {:gen-num 93}
-;;; 51
-;;; {:gen-num 94}
-;;; 62
 ;;; {:gen-num 95}
-;;; 52
-;;; {:gen-num 96}
-;;; 55
-;;; {:gen-num 97}
-;;; 51
-;;; {:gen-num 98}
-;;; 57
-;;; {:gen-num 99}
-;;; 51
 ;;; {:gen-num 100}
-;;; 51
-;;; {:gen-num 101}
-;;; 60
-;;; {:gen-num 102}
-;;; 63
-;;; {:gen-num 103}
-;;; 52
-;;; {:gen-num 104}
-;;; 66
 ;;; {:gen-num 105}
-;;; 54
-;;; {:gen-num 106}
-;;; 54
-;;; {:gen-num 107}
-;;; 37
-;;; {:gen-num 108}
-;;; 36
-;;; {:gen-num 109}
-;;; 35
 ;;; {:gen-num 110}
-;;; 32
-;;; {:gen-num 111}
-;;; 34
-;;; {:gen-num 112}
-;;; 34
-;;; {:gen-num 113}
-;;; 31
-;;; {:gen-num 114}
-;;; 36
 ;;; {:gen-num 115}
-;;; 33
-;;; {:gen-num 116}
-;;; 35
-;;; {:gen-num 117}
-;;; 32
-;;; {:gen-num 118}
-;;; 28
-;;; {:gen-num 119}
-;;; 28
 ;;; {:gen-num 120}
-;;; 24
-;;; {:gen-num 121}
-;;; 33
-;;; {:gen-num 122}
-;;; 44
-;;; {:gen-num 123}
-;;; 35
-;;; {:gen-num 124}
-;;; 34
 ;;; {:gen-num 125}
-;;; 43
-;;; {:gen-num 126}
-;;; 30
-;;; {:gen-num 127}
-;;; 34
-;;; {:gen-num 128}
-;;; 33
-;;; {:gen-num 129}
-;;; 28
 ;;; {:gen-num 130}
-;;; 39
-;;; {:gen-num 131}
-;;; 39
-;;; {:gen-num 132}
-;;; 27
-;;; {:gen-num 133}
-;;; 28
-;;; {:gen-num 134}
-;;; 28
 ;;; {:gen-num 135}
-;;; 24
-;;; {:gen-num 136}
-;;; 24
-;;; {:gen-num 137}
-;;; 27
-;;; {:gen-num 138}
-;;; 32
-;;; {:gen-num 139}
-;;; 28
 ;;; {:gen-num 140}
-;;; 34
-;;; {:gen-num 141}
-;;; 46
-;;; {:gen-num 142}
-;;; 33
-;;; {:gen-num 143}
-;;; 40
-;;; {:gen-num 144}
-;;; 29
 ;;; {:gen-num 145}
-;;; 33
-;;; {:gen-num 146}
-;;; 61
-;;; {:gen-num 147}
-;;; 37
-;;; {:gen-num 148}
-;;; 32
-;;; {:gen-num 149}
-;;; 43
 ;;; {:gen-num 150}
-;;; 43
-;;; {:gen-num 151}
-;;; 43
-;;; {:gen-num 152}
-;;; 36
-;;; {:gen-num 153}
-;;; 40
-;;; {:gen-num 154}
-;;; 27
 ;;; {:gen-num 155}
-;;; 32
-;;; {:gen-num 156}
-;;; 35
-;;; {:gen-num 157}
-;;; 35
-;;; {:gen-num 158}
-;;; 29
-;;; {:gen-num 159}
-;;; 31
 ;;; {:gen-num 160}
-;;; 47
-;;; {:gen-num 161}
-;;; 35
-;;; {:gen-num 162}
-;;; 33
-;;; {:gen-num 163}
-;;; 33
-;;; {:gen-num 164}
-;;; 31
 ;;; {:gen-num 165}
-;;; 34
-;;; {:gen-num 166}
-;;; 37
-;;; {:gen-num 167}
-;;; 40
-;;; {:gen-num 168}
-;;; 29
-;;; {:gen-num 169}
-;;; 30
 ;;; {:gen-num 170}
-;;; 53
-;;; {:gen-num 171}
-;;; 38
-;;; {:gen-num 172}
-;;; 38
-;;; {:gen-num 173}
-;;; 32
-;;; {:gen-num 174}
-;;; 36
 ;;; {:gen-num 175}
-;;; 35
-;;; {:gen-num 176}
-;;; 30
-;;; {:gen-num 177}
-;;; 29
-;;; {:gen-num 178}
-;;; 35
-;;; {:gen-num 179}
-;;; 44
 ;;; {:gen-num 180}
-;;; 51
-;;; {:gen-num 181}
-;;; 44
-;;; {:gen-num 182}
-;;; 29
-;;; {:gen-num 183}
-;;; 39
-;;; {:gen-num 184}
-;;; 33
 ;;; {:gen-num 185}
-;;; 27
-;;; {:gen-num 186}
-;;; 40
-;;; {:gen-num 187}
-;;; 28
-;;; {:gen-num 188}
-;;; 36
-;;; {:gen-num 189}
-;;; 25
 ;;; {:gen-num 190}
-;;; 34
-;;; {:gen-num 191}
-;;; 39
-;;; {:gen-num 192}
-;;; 31
-;;; {:gen-num 193}
-;;; 27
-;;; {:gen-num 194}
-;;; 29
 ;;; {:gen-num 195}
-;;; 41
-;;; {:gen-num 196}
-;;; 35
-;;; {:gen-num 197}
-;;; 33
-;;; {:gen-num 198}
-;;; 40
-;;; {:gen-num 199}
-;;; 33
 ;;; {:gen-num 200}
-;;; 28
-;;; {:gen-num 201}
-;;; 34
-;;; {:gen-num 202}
-;;; 35
-;;; {:gen-num 203}
-;;; 34
-;;; {:gen-num 204}
-;;; 35
 ;;; {:gen-num 205}
-;;; 32
-;;; {:gen-num 206}
-;;; 32
-;;; {:gen-num 207}
-;;; 27
-;;; {:gen-num 208}
-;;; 42
-;;; {:gen-num 209}
-;;; 42
 ;;; {:gen-num 210}
-;;; 44
-;;; {:gen-num 211}
-;;; 53
-;;; {:gen-num 212}
-;;; 32
-;;; {:gen-num 213}
-;;; 35
-;;; {:gen-num 214}
-;;; 31
 ;;; {:gen-num 215}
-;;; 40
-;;; {:gen-num 216}
-;;; 35
-;;; {:gen-num 217}
-;;; 35
-;;; {:gen-num 218}
-;;; 35
-;;; {:gen-num 219}
-;;; 34
 ;;; {:gen-num 220}
-;;; 38
-;;; {:gen-num 221}
-;;; 35
-;;; {:gen-num 222}
-;;; 37
-;;; {:gen-num 223}
-;;; 29
-;;; {:gen-num 224}
-;;; 25
 ;;; {:gen-num 225}
-;;; 31
-;;; {:gen-num 226}
-;;; 36
-;;; {:gen-num 227}
-;;; 37
-;;; {:gen-num 228}
-;;; 39
-;;; {:gen-num 229}
-;;; 43
 ;;; {:gen-num 230}
-;;; 34
-;;; {:gen-num 231}
-;;; 35
-;;; {:gen-num 232}
-;;; 40
-;;; {:gen-num 233}
-;;; 38
-;;; {:gen-num 234}
-;;; 29
 ;;; {:gen-num 235}
-;;; 34
-;;; {:gen-num 236}
-;;; 32
-;;; {:gen-num 237}
-;;; 34
-;;; {:gen-num 238}
-;;; 33
-;;; {:gen-num 239}
-;;; 36
 ;;; {:gen-num 240}
-;;; 29
-;;; {:gen-num 241}
-;;; 26
-;;; {:gen-num 242}
-;;; 29
-;;; {:gen-num 243}
-;;; 28
-;;; {:gen-num 244}
-;;; 28
 ;;; {:gen-num 245}
-;;; 32
-;;; {:gen-num 246}
-;;; 45
-;;; {:gen-num 247}
-;;; 36
-;;; {:gen-num 248}
-;;; 32
-;;; {:gen-num 249}
-;;; 32
 ;;; {:gen-num 250}
-;;; 30
-;;; &quot;Elapsed time: 159999.23291 msecs&quot;
+;;; {:gen-num 255}
+;;; {:gen-num 260}
+;;; {:gen-num 265}
+;;; {:gen-num 270}
+;;; {:gen-num 275}
+;;; {:gen-num 280}
+;;; {:gen-num 285}
+;;; {:gen-num 290}
+;;; {:gen-num 295}
+;;; {:gen-num 300}
+;;; {:gen-num 305}
+;;; {:gen-num 310}
+;;; {:gen-num 315}
+;;; {:gen-num 320}
+;;; {:gen-num 325}
+;;; {:gen-num 330}
+;;; {:gen-num 335}
+;;; {:gen-num 340}
+;;; {:gen-num 345}
+;;; {:gen-num 350}
+;;; {:gen-num 355}
+;;; {:gen-num 360}
+;;; {:gen-num 365}
+;;; {:gen-num 370}
+;;; {:gen-num 375}
+;;; {:gen-num 380}
+;;; {:gen-num 385}
+;;; {:gen-num 390}
+;;; {:gen-num 395}
+;;; {:gen-num 400}
+;;; {:gen-num 405}
+;;; {:gen-num 410}
+;;; {:gen-num 415}
+;;; {:gen-num 420}
+;;; {:gen-num 425}
+;;; {:gen-num 430}
+;;; {:gen-num 435}
+;;; {:gen-num 440}
+;;; {:gen-num 445}
+;;; {:gen-num 450}
+;;; {:gen-num 455}
+;;; {:gen-num 460}
+;;; {:gen-num 465}
+;;; {:gen-num 470}
+;;; {:gen-num 475}
+;;; {:gen-num 480}
+;;; {:gen-num 485}
+;;; {:gen-num 490}
+;;; {:gen-num 495}
+;;; {:gen-num 500}
+;;; {:gen-num 505}
+;;; {:gen-num 510}
+;;; {:gen-num 515}
+;;; {:gen-num 520}
+;;; {:gen-num 525}
+;;; {:gen-num 530}
+;;; {:gen-num 535}
+;;; {:gen-num 540}
+;;; {:gen-num 545}
+;;; {:gen-num 550}
+;;; {:gen-num 555}
+;;; {:gen-num 560}
+;;; {:gen-num 565}
+;;; {:gen-num 570}
+;;; {:gen-num 575}
+;;; {:gen-num 580}
+;;; {:gen-num 585}
+;;; {:gen-num 590}
+;;; {:gen-num 595}
+;;; {:gen-num 600}
+;;; {:gen-num 605}
+;;; {:gen-num 610}
+;;; {:gen-num 615}
+;;; {:gen-num 620}
+;;; {:gen-num 625}
+;;; {:gen-num 630}
+;;; {:gen-num 635}
+;;; {:gen-num 640}
+;;; {:gen-num 645}
+;;; {:gen-num 650}
+;;; {:gen-num 655}
+;;; {:gen-num 660}
+;;; {:gen-num 665}
+;;; {:gen-num 670}
+;;; {:gen-num 675}
+;;; {:gen-num 680}
+;;; {:gen-num 685}
+;;; {:gen-num 690}
+;;; {:gen-num 695}
+;;; {:gen-num 700}
+;;; {:gen-num 705}
+;;; {:gen-num 710}
+;;; {:gen-num 715}
+;;; {:gen-num 720}
+;;; {:gen-num 725}
+;;; {:gen-num 730}
+;;; {:gen-num 735}
+;;; {:gen-num 740}
+;;; {:gen-num 745}
+;;; {:gen-num 750}
+;;; {:gen-num 755}
+;;; {:gen-num 760}
+;;; {:gen-num 765}
+;;; {:gen-num 770}
+;;; {:gen-num 775}
+;;; {:gen-num 780}
+;;; {:gen-num 785}
+;;; {:gen-num 790}
+;;; {:gen-num 795}
+;;; {:gen-num 800}
+;;; {:gen-num 805}
+;;; {:gen-num 810}
+;;; {:gen-num 815}
+;;; {:gen-num 820}
+;;; {:gen-num 825}
+;;; {:gen-num 830}
+;;; {:gen-num 835}
+;;; {:gen-num 840}
+;;; {:gen-num 845}
+;;; {:gen-num 850}
+;;; {:gen-num 855}
+;;; {:gen-num 860}
+;;; {:gen-num 865}
+;;; {:gen-num 870}
+;;; {:gen-num 875}
+;;; {:gen-num 880}
+;;; {:gen-num 885}
+;;; {:gen-num 890}
+;;; {:gen-num 895}
+;;; {:gen-num 900}
+;;; {:gen-num 905}
+;;; {:gen-num 910}
+;;; {:gen-num 915}
+;;; {:gen-num 920}
+;;; {:gen-num 925}
+;;; {:gen-num 930}
+;;; {:gen-num 935}
+;;; {:gen-num 940}
+;;; {:gen-num 945}
+;;; {:gen-num 950}
+;;; {:gen-num 955}
+;;; {:gen-num 960}
+;;; {:gen-num 965}
+;;; {:gen-num 970}
+;;; {:gen-num 975}
+;;; {:gen-num 980}
+;;; {:gen-num 985}
+;;; {:gen-num 990}
+;;; {:gen-num 995}
+;;; {:gen-num 1000}
+;;; &quot;Elapsed time: 159214.774171 msecs&quot;
 ;;; 
 ;; <-
 ;; =>
@@ -659,16 +358,45 @@
 ;; **
 
 ;; @@
+
 ;; Remove generation numbers from each generation
 (defn filter-out-generation-num
   [generation]
 (filter #(nil? (:gen-num %)) generation))
+;; @@
+;; =>
+;;; {"type":"html","content":"<span class='clj-var'>#&#x27;user/filter-out-generation-num</span>","value":"#'user/filter-out-generation-num"}
+;; <=
 
+;; @@
 ;; Remove all archived expressions from each generation.
 (defn filter-out-archive
   [generation]
   (filter #(nil? (:archived %)) generation))
+;; @@
+;; =>
+;;; {"type":"html","content":"<span class='clj-var'>#&#x27;user/filter-out-archive</span>","value":"#'user/filter-out-archive"}
+;; <=
 
+;; @@
+(defn best-in-generation-1
+  [popn score-1-func score-2-func]
+  (apply max-key :score-1 (score-population popn score-1-func score-2-func)))
+;; @@
+;; =>
+;;; {"type":"html","content":"<span class='clj-var'>#&#x27;user/best-in-generation-1</span>","value":"#'user/best-in-generation-1"}
+;; <=
+
+;; @@
+(defn best-in-generation-2
+  [popn score-1-func score-2-func]
+  (apply max-key :score-2 (score-population popn score-1-func score-2-func)))
+;; @@
+;; =>
+;;; {"type":"html","content":"<span class='clj-var'>#&#x27;user/best-in-generation-2</span>","value":"#'user/best-in-generation-2"}
+;; <=
+
+;; @@
 (def individuals (map #(filter-out-generation-num %) run-data))
 (def all-individuals (map #(filter-out-archive %) individuals))
 (def final-archive (filter #(true? (:archived %)) (last individuals)))
@@ -678,47 +406,16 @@
 ;; <=
 
 ;; @@
-(defn best-in-generation-1a
-  [popn score-1a-func score-1b-func score-2-func]
-  (apply max-key :score-1a (score-population popn score-1a-func score-1b-func score-2-func)))
-
-(defn best-in-generation-1b
-  [popn score-1a-func score-1b-func score-2-func]
-  (apply max-key :score-1b (score-population popn score-1a-func score-1b-func score-2-func)))
-
-(defn best-in-generation-2
-  [popn score-1a-func score-1b-func score-2-func]
-  (apply max-key :score-2 (score-population popn score-1a-func score-1b-func score-2-func)))
+(def bests-1 (doall (map #(best-in-generation-1 % (:score-1-func config) (:score-2-func config)) all-individuals)))
+(list-plot (map :score-1 bests-1) :joined true)
 ;; @@
 ;; =>
-;;; {"type":"html","content":"<span class='clj-var'>#&#x27;user/best-in-generation-2</span>","value":"#'user/best-in-generation-2"}
-;; <=
-
-;; @@
-(def bests-1a (doall (map #(best-in-generation-1a % (:score-1a-func config)
-                                                    (:score-1b-func config) 
-                                                    (:score-2-func config)) all-individuals)))
-(list-plot (map :score-1a bests-1a) :joined true)
-;; @@
-;; =>
-;;; {"type":"vega","content":{"axes":[{"type":"x","scale":"x"},{"type":"y","scale":"y"}],"scales":[{"name":"x","type":"linear","range":"width","zero":false,"domain":{"data":"a1d7257b-96c6-483e-aafd-cadd46c4489e","field":"data.x"}},{"name":"y","type":"linear","range":"height","nice":true,"zero":false,"domain":{"data":"a1d7257b-96c6-483e-aafd-cadd46c4489e","field":"data.y"}}],"marks":[{"type":"line","from":{"data":"a1d7257b-96c6-483e-aafd-cadd46c4489e"},"properties":{"enter":{"x":{"field":"data.x","scale":"x"},"y":{"field":"data.y","scale":"y"},"stroke":{"value":"#FF29D2"},"strokeWidth":{"value":2},"strokeOpacity":{"value":1}}}}],"data":[{"name":"a1d7257b-96c6-483e-aafd-cadd46c4489e","values":[{"x":0,"y":-40.65142806537915},{"x":1,"y":-20.87419524975121},{"x":2,"y":-14.33314694557339},{"x":3,"y":-7.401824052678421},{"x":4,"y":-14.33314694557339},{"x":5,"y":-14.33314694557339},{"x":6,"y":-14.33314694557339},{"x":7,"y":-17.622347784228623},{"x":8,"y":-17.622347784228623},{"x":9,"y":-11.033717811107635},{"x":10,"y":-3.1310110653284937},{"x":11,"y":-3.1310110653284937},{"x":12,"y":-0.285235776391346},{"x":13,"y":-0.285235776391346},{"x":14,"y":-0.285235776391346},{"x":15,"y":-0.285235776391346},{"x":16,"y":-0.285235776391346},{"x":17,"y":-0.285235776391346},{"x":18,"y":-0.285235776391346},{"x":19,"y":-0.285235776391346},{"x":20,"y":-0.285235776391346},{"x":21,"y":-0.285235776391346},{"x":22,"y":-0.285235776391346},{"x":23,"y":-0.285235776391346},{"x":24,"y":-0.285235776391346},{"x":25,"y":-0.285235776391346},{"x":26,"y":-0.285235776391346},{"x":27,"y":-0.285235776391346},{"x":28,"y":-0.285235776391346},{"x":29,"y":-0.285235776391346},{"x":30,"y":-0.285235776391346},{"x":31,"y":-0.285235776391346},{"x":32,"y":-0.285235776391346},{"x":33,"y":-0.285235776391346},{"x":34,"y":-0.285235776391346},{"x":35,"y":-0.285235776391346},{"x":36,"y":-0.285235776391346},{"x":37,"y":-0.285235776391346},{"x":38,"y":-0.285235776391346},{"x":39,"y":-0.285235776391346},{"x":40,"y":-0.285235776391346},{"x":41,"y":-0.285235776391346},{"x":42,"y":-0.285235776391346},{"x":43,"y":-0.285235776391346},{"x":44,"y":-0.285235776391346},{"x":45,"y":-0.285235776391346},{"x":46,"y":-0.285235776391346},{"x":47,"y":-0.285235776391346},{"x":48,"y":-0.285235776391346},{"x":49,"y":-0.285235776391346},{"x":50,"y":-0.285235776391346},{"x":51,"y":-0.285235776391346},{"x":52,"y":-0.285235776391346},{"x":53,"y":-0.09124298056121916},{"x":54,"y":-0.09124298056121916},{"x":55,"y":-0.09124298056121916},{"x":56,"y":-0.09124298056121916},{"x":57,"y":-0.09124298056121916},{"x":58,"y":-0.08428485799231566},{"x":59,"y":-0.08428485799231566},{"x":60,"y":-0.08428485799231566},{"x":61,"y":-0.08881223887146916},{"x":62,"y":-0.09124298056121916},{"x":63,"y":-0.08881223887146916},{"x":64,"y":-0.09124298056121916},{"x":65,"y":-0.08881223887146916},{"x":66,"y":-0.08881223887146916},{"x":67,"y":-0.09124298056121916},{"x":68,"y":-0.08881223887146916},{"x":69,"y":-0.08881223887146916},{"x":70,"y":-0.08881223887146916},{"x":71,"y":-0.08551947136584204},{"x":72,"y":-0.08551947136584204},{"x":73,"y":-0.08551947136584204},{"x":74,"y":-0.00426793423412164},{"x":75,"y":-0.00426793423412164},{"x":76,"y":-0.00426793423412164},{"x":77,"y":-0.00426793423412164},{"x":78,"y":-0.00426793423412164},{"x":79,"y":-0.00426793423412164},{"x":80,"y":-0.00426793423412164},{"x":81,"y":-0.00426793423412164},{"x":82,"y":-0.00426793423412164},{"x":83,"y":-0.00426793423412164},{"x":84,"y":-0.00426793423412164},{"x":85,"y":-0.00426793423412164},{"x":86,"y":-0.005865923076271429},{"x":87,"y":-0.00426793423412164},{"x":88,"y":-0.00426793423412164},{"x":89,"y":-0.00426793423412164},{"x":90,"y":-0.00426793423412164},{"x":91,"y":-0.00426793423412164},{"x":92,"y":-0.00426793423412164},{"x":93,"y":-0.00426793423412164},{"x":94,"y":-0.00426793423412164},{"x":95,"y":-0.00426793423412164},{"x":96,"y":-0.005865923076271429},{"x":97,"y":-0.005865923076271429},{"x":98,"y":-0.00426793423412164},{"x":99,"y":-0.00426793423412164},{"x":100,"y":-0.00426793423412164},{"x":101,"y":-0.005865923076271429},{"x":102,"y":-0.005865923076271429},{"x":103,"y":-0.005865923076271429},{"x":104,"y":-0.005865923076271429},{"x":105,"y":-0.0011661145479138213},{"x":106,"y":-0.0011661145479138213},{"x":107,"y":-0.0011661145479138213},{"x":108,"y":-0.0011661145479138213},{"x":109,"y":-0.285235776391346},{"x":110,"y":-0.0011661145479138213},{"x":111,"y":-0.0011661145479138213},{"x":112,"y":-0.285235776391346},{"x":113,"y":-0.285235776391346},{"x":114,"y":-0.0011661145479138213},{"x":115,"y":-0.0011661145479138213},{"x":116,"y":-0.0011661145479138213},{"x":117,"y":-0.0011661145479138213},{"x":118,"y":-0.0011661145479138213},{"x":119,"y":-0.0011661145479138213},{"x":120,"y":-0.0011661145479138213},{"x":121,"y":-0.0011661145479138213},{"x":122,"y":-0.285235776391346},{"x":123,"y":-0.285235776391346},{"x":124,"y":-0.0011661145479138213},{"x":125,"y":-0.285235776391346},{"x":126,"y":-0.0011661145479138213},{"x":127,"y":-0.0011661145479138213},{"x":128,"y":-0.0011661145479138213},{"x":129,"y":-0.0011661145479138213},{"x":130,"y":-0.0011661145479138213},{"x":131,"y":-0.0011661145479138213},{"x":132,"y":-0.0011661145479138213},{"x":133,"y":-0.285235776391346},{"x":134,"y":-0.26882288354681805},{"x":135,"y":-0.0011661145479138213},{"x":136,"y":-0.285235776391346},{"x":137,"y":-0.0011661145479138213},{"x":138,"y":-0.0011661145479138213},{"x":139,"y":-0.0011661145479138213},{"x":140,"y":-0.0011661145479138213},{"x":141,"y":-0.0011661145479138213},{"x":142,"y":-0.0011661145479138213},{"x":143,"y":-0.0011661145479138213},{"x":144,"y":-0.0011661145479138213},{"x":145,"y":-0.0011661145479138213},{"x":146,"y":-0.0011661145479138213},{"x":147,"y":-0.0011661145479138213},{"x":148,"y":-0.0011661145479138213},{"x":149,"y":-0.0011661145479138213},{"x":150,"y":-0.0011661145479138213},{"x":151,"y":-0.0011661145479138213},{"x":152,"y":-0.0011661145479138213},{"x":153,"y":-0.0011661145479138213},{"x":154,"y":-0.0011661145479138213},{"x":155,"y":-0.0011661145479138213},{"x":156,"y":-0.0011661145479138213},{"x":157,"y":-0.0011661145479138213},{"x":158,"y":-0.0011661145479138213},{"x":159,"y":-0.0011661145479138213},{"x":160,"y":-0.0011661145479138213},{"x":161,"y":-0.0011661145479138213},{"x":162,"y":-0.0011661145479138213},{"x":163,"y":-0.0011661145479138213},{"x":164,"y":-0.0011661145479138213},{"x":165,"y":-0.0011661145479138213},{"x":166,"y":-0.0011661145479138213},{"x":167,"y":-0.0011661145479138213},{"x":168,"y":-0.0011661145479138213},{"x":169,"y":-0.0011661145479138213},{"x":170,"y":-0.0011661145479138213},{"x":171,"y":-0.0011661145479138213},{"x":172,"y":-0.0011661145479138213},{"x":173,"y":-0.0011661145479138213},{"x":174,"y":-0.0011661145479138213},{"x":175,"y":-0.0011661145479138213},{"x":176,"y":-0.0011661145479138213},{"x":177,"y":-0.0011661145479138213},{"x":178,"y":-0.0011661145479138213},{"x":179,"y":-0.0011661145479138213},{"x":180,"y":-0.0011661145479138213},{"x":181,"y":-0.0011661145479138213},{"x":182,"y":-0.0011661145479138213},{"x":183,"y":-0.0011661145479138213},{"x":184,"y":-0.0011661145479138213},{"x":185,"y":-0.0011661145479138213},{"x":186,"y":-0.0011661145479138213},{"x":187,"y":-0.0011661145479138213},{"x":188,"y":-0.0011661145479138213},{"x":189,"y":-0.0011661145479138213},{"x":190,"y":-0.0011661145479138213},{"x":191,"y":-0.0011661145479138213},{"x":192,"y":-0.0011661145479138213},{"x":193,"y":-0.0011661145479138213},{"x":194,"y":-0.0011661145479138213},{"x":195,"y":-0.0011661145479138213},{"x":196,"y":-0.0011661145479138213},{"x":197,"y":-0.285235776391346},{"x":198,"y":-0.0011661145479138213},{"x":199,"y":-0.0011661145479138213},{"x":200,"y":-0.0011661145479138213},{"x":201,"y":-0.0011661145479138213},{"x":202,"y":-0.0011661145479138213},{"x":203,"y":-0.0011661145479138213},{"x":204,"y":-0.0011661145479138213},{"x":205,"y":-0.0011661145479138213},{"x":206,"y":-0.09404064621776342},{"x":207,"y":-0.0011661145479138213},{"x":208,"y":-0.0011661145479138213},{"x":209,"y":-0.0011661145479138213},{"x":210,"y":-0.0011661145479138213},{"x":211,"y":-0.0011661145479138213},{"x":212,"y":-0.0011661145479138213},{"x":213,"y":-0.0011661145479138213},{"x":214,"y":-0.0011661145479138213},{"x":215,"y":-0.0011661145479138213},{"x":216,"y":-0.0011661145479138213},{"x":217,"y":-0.0011661145479138213},{"x":218,"y":-0.0011661145479138213},{"x":219,"y":-0.0011661145479138213},{"x":220,"y":-0.0011661145479138213},{"x":221,"y":-0.0011661145479138213},{"x":222,"y":-0.0011661145479138213},{"x":223,"y":-0.0011661145479138213},{"x":224,"y":-0.0011661145479138213},{"x":225,"y":-0.0011661145479138213},{"x":226,"y":-0.0011661145479138213},{"x":227,"y":-0.0011661145479138213},{"x":228,"y":-0.0011661145479138213},{"x":229,"y":-0.0011661145479138213},{"x":230,"y":-0.0011661145479138213},{"x":231,"y":-0.0011661145479138213},{"x":232,"y":-0.0011661145479138213},{"x":233,"y":-0.0011661145479138213},{"x":234,"y":-0.0011661145479138213},{"x":235,"y":-0.0011661145479138213},{"x":236,"y":-0.0011661145479138213},{"x":237,"y":-0.0011661145479138213},{"x":238,"y":-0.0011661145479138213},{"x":239,"y":-0.0011661145479138213},{"x":240,"y":-0.0011661145479138213},{"x":241,"y":-0.0011661145479138213},{"x":242,"y":-0.0011661145479138213},{"x":243,"y":-0.0011661145479138213},{"x":244,"y":-0.0011661145479138213},{"x":245,"y":-0.0011661145479138213},{"x":246,"y":-0.0011661145479138213},{"x":247,"y":-0.0011661145479138213},{"x":248,"y":-0.0011661145479138213},{"x":249,"y":-0.0011661145479138213}]}],"width":400,"height":247.2187957763672,"padding":{"bottom":20,"top":10,"right":10,"left":50}},"value":"#gorilla_repl.vega.VegaView{:content {:axes [{:type \"x\", :scale \"x\"} {:type \"y\", :scale \"y\"}], :scales [{:name \"x\", :type \"linear\", :range \"width\", :zero false, :domain {:data \"a1d7257b-96c6-483e-aafd-cadd46c4489e\", :field \"data.x\"}} {:name \"y\", :type \"linear\", :range \"height\", :nice true, :zero false, :domain {:data \"a1d7257b-96c6-483e-aafd-cadd46c4489e\", :field \"data.y\"}}], :marks [{:type \"line\", :from {:data \"a1d7257b-96c6-483e-aafd-cadd46c4489e\"}, :properties {:enter {:x {:field \"data.x\", :scale \"x\"}, :y {:field \"data.y\", :scale \"y\"}, :stroke {:value \"#FF29D2\"}, :strokeWidth {:value 2}, :strokeOpacity {:value 1}}}}], :data [{:name \"a1d7257b-96c6-483e-aafd-cadd46c4489e\", :values ({:x 0, :y -40.65142806537915} {:x 1, :y -20.87419524975121} {:x 2, :y -14.33314694557339} {:x 3, :y -7.401824052678421} {:x 4, :y -14.33314694557339} {:x 5, :y -14.33314694557339} {:x 6, :y -14.33314694557339} {:x 7, :y -17.622347784228623} {:x 8, :y -17.622347784228623} {:x 9, :y -11.033717811107635} {:x 10, :y -3.1310110653284937} {:x 11, :y -3.1310110653284937} {:x 12, :y -0.285235776391346} {:x 13, :y -0.285235776391346} {:x 14, :y -0.285235776391346} {:x 15, :y -0.285235776391346} {:x 16, :y -0.285235776391346} {:x 17, :y -0.285235776391346} {:x 18, :y -0.285235776391346} {:x 19, :y -0.285235776391346} {:x 20, :y -0.285235776391346} {:x 21, :y -0.285235776391346} {:x 22, :y -0.285235776391346} {:x 23, :y -0.285235776391346} {:x 24, :y -0.285235776391346} {:x 25, :y -0.285235776391346} {:x 26, :y -0.285235776391346} {:x 27, :y -0.285235776391346} {:x 28, :y -0.285235776391346} {:x 29, :y -0.285235776391346} {:x 30, :y -0.285235776391346} {:x 31, :y -0.285235776391346} {:x 32, :y -0.285235776391346} {:x 33, :y -0.285235776391346} {:x 34, :y -0.285235776391346} {:x 35, :y -0.285235776391346} {:x 36, :y -0.285235776391346} {:x 37, :y -0.285235776391346} {:x 38, :y -0.285235776391346} {:x 39, :y -0.285235776391346} {:x 40, :y -0.285235776391346} {:x 41, :y -0.285235776391346} {:x 42, :y -0.285235776391346} {:x 43, :y -0.285235776391346} {:x 44, :y -0.285235776391346} {:x 45, :y -0.285235776391346} {:x 46, :y -0.285235776391346} {:x 47, :y -0.285235776391346} {:x 48, :y -0.285235776391346} {:x 49, :y -0.285235776391346} {:x 50, :y -0.285235776391346} {:x 51, :y -0.285235776391346} {:x 52, :y -0.285235776391346} {:x 53, :y -0.09124298056121916} {:x 54, :y -0.09124298056121916} {:x 55, :y -0.09124298056121916} {:x 56, :y -0.09124298056121916} {:x 57, :y -0.09124298056121916} {:x 58, :y -0.08428485799231566} {:x 59, :y -0.08428485799231566} {:x 60, :y -0.08428485799231566} {:x 61, :y -0.08881223887146916} {:x 62, :y -0.09124298056121916} {:x 63, :y -0.08881223887146916} {:x 64, :y -0.09124298056121916} {:x 65, :y -0.08881223887146916} {:x 66, :y -0.08881223887146916} {:x 67, :y -0.09124298056121916} {:x 68, :y -0.08881223887146916} {:x 69, :y -0.08881223887146916} {:x 70, :y -0.08881223887146916} {:x 71, :y -0.08551947136584204} {:x 72, :y -0.08551947136584204} {:x 73, :y -0.08551947136584204} {:x 74, :y -0.00426793423412164} {:x 75, :y -0.00426793423412164} {:x 76, :y -0.00426793423412164} {:x 77, :y -0.00426793423412164} {:x 78, :y -0.00426793423412164} {:x 79, :y -0.00426793423412164} {:x 80, :y -0.00426793423412164} {:x 81, :y -0.00426793423412164} {:x 82, :y -0.00426793423412164} {:x 83, :y -0.00426793423412164} {:x 84, :y -0.00426793423412164} {:x 85, :y -0.00426793423412164} {:x 86, :y -0.005865923076271429} {:x 87, :y -0.00426793423412164} {:x 88, :y -0.00426793423412164} {:x 89, :y -0.00426793423412164} {:x 90, :y -0.00426793423412164} {:x 91, :y -0.00426793423412164} {:x 92, :y -0.00426793423412164} {:x 93, :y -0.00426793423412164} {:x 94, :y -0.00426793423412164} {:x 95, :y -0.00426793423412164} {:x 96, :y -0.005865923076271429} {:x 97, :y -0.005865923076271429} {:x 98, :y -0.00426793423412164} {:x 99, :y -0.00426793423412164} {:x 100, :y -0.00426793423412164} {:x 101, :y -0.005865923076271429} {:x 102, :y -0.005865923076271429} {:x 103, :y -0.005865923076271429} {:x 104, :y -0.005865923076271429} {:x 105, :y -0.0011661145479138213} {:x 106, :y -0.0011661145479138213} {:x 107, :y -0.0011661145479138213} {:x 108, :y -0.0011661145479138213} {:x 109, :y -0.285235776391346} {:x 110, :y -0.0011661145479138213} {:x 111, :y -0.0011661145479138213} {:x 112, :y -0.285235776391346} {:x 113, :y -0.285235776391346} {:x 114, :y -0.0011661145479138213} {:x 115, :y -0.0011661145479138213} {:x 116, :y -0.0011661145479138213} {:x 117, :y -0.0011661145479138213} {:x 118, :y -0.0011661145479138213} {:x 119, :y -0.0011661145479138213} {:x 120, :y -0.0011661145479138213} {:x 121, :y -0.0011661145479138213} {:x 122, :y -0.285235776391346} {:x 123, :y -0.285235776391346} {:x 124, :y -0.0011661145479138213} {:x 125, :y -0.285235776391346} {:x 126, :y -0.0011661145479138213} {:x 127, :y -0.0011661145479138213} {:x 128, :y -0.0011661145479138213} {:x 129, :y -0.0011661145479138213} {:x 130, :y -0.0011661145479138213} {:x 131, :y -0.0011661145479138213} {:x 132, :y -0.0011661145479138213} {:x 133, :y -0.285235776391346} {:x 134, :y -0.26882288354681805} {:x 135, :y -0.0011661145479138213} {:x 136, :y -0.285235776391346} {:x 137, :y -0.0011661145479138213} {:x 138, :y -0.0011661145479138213} {:x 139, :y -0.0011661145479138213} {:x 140, :y -0.0011661145479138213} {:x 141, :y -0.0011661145479138213} {:x 142, :y -0.0011661145479138213} {:x 143, :y -0.0011661145479138213} {:x 144, :y -0.0011661145479138213} {:x 145, :y -0.0011661145479138213} {:x 146, :y -0.0011661145479138213} {:x 147, :y -0.0011661145479138213} {:x 148, :y -0.0011661145479138213} {:x 149, :y -0.0011661145479138213} {:x 150, :y -0.0011661145479138213} {:x 151, :y -0.0011661145479138213} {:x 152, :y -0.0011661145479138213} {:x 153, :y -0.0011661145479138213} {:x 154, :y -0.0011661145479138213} {:x 155, :y -0.0011661145479138213} {:x 156, :y -0.0011661145479138213} {:x 157, :y -0.0011661145479138213} {:x 158, :y -0.0011661145479138213} {:x 159, :y -0.0011661145479138213} {:x 160, :y -0.0011661145479138213} {:x 161, :y -0.0011661145479138213} {:x 162, :y -0.0011661145479138213} {:x 163, :y -0.0011661145479138213} {:x 164, :y -0.0011661145479138213} {:x 165, :y -0.0011661145479138213} {:x 166, :y -0.0011661145479138213} {:x 167, :y -0.0011661145479138213} {:x 168, :y -0.0011661145479138213} {:x 169, :y -0.0011661145479138213} {:x 170, :y -0.0011661145479138213} {:x 171, :y -0.0011661145479138213} {:x 172, :y -0.0011661145479138213} {:x 173, :y -0.0011661145479138213} {:x 174, :y -0.0011661145479138213} {:x 175, :y -0.0011661145479138213} {:x 176, :y -0.0011661145479138213} {:x 177, :y -0.0011661145479138213} {:x 178, :y -0.0011661145479138213} {:x 179, :y -0.0011661145479138213} {:x 180, :y -0.0011661145479138213} {:x 181, :y -0.0011661145479138213} {:x 182, :y -0.0011661145479138213} {:x 183, :y -0.0011661145479138213} {:x 184, :y -0.0011661145479138213} {:x 185, :y -0.0011661145479138213} {:x 186, :y -0.0011661145479138213} {:x 187, :y -0.0011661145479138213} {:x 188, :y -0.0011661145479138213} {:x 189, :y -0.0011661145479138213} {:x 190, :y -0.0011661145479138213} {:x 191, :y -0.0011661145479138213} {:x 192, :y -0.0011661145479138213} {:x 193, :y -0.0011661145479138213} {:x 194, :y -0.0011661145479138213} {:x 195, :y -0.0011661145479138213} {:x 196, :y -0.0011661145479138213} {:x 197, :y -0.285235776391346} {:x 198, :y -0.0011661145479138213} {:x 199, :y -0.0011661145479138213} {:x 200, :y -0.0011661145479138213} {:x 201, :y -0.0011661145479138213} {:x 202, :y -0.0011661145479138213} {:x 203, :y -0.0011661145479138213} {:x 204, :y -0.0011661145479138213} {:x 205, :y -0.0011661145479138213} {:x 206, :y -0.09404064621776342} {:x 207, :y -0.0011661145479138213} {:x 208, :y -0.0011661145479138213} {:x 209, :y -0.0011661145479138213} {:x 210, :y -0.0011661145479138213} {:x 211, :y -0.0011661145479138213} {:x 212, :y -0.0011661145479138213} {:x 213, :y -0.0011661145479138213} {:x 214, :y -0.0011661145479138213} {:x 215, :y -0.0011661145479138213} {:x 216, :y -0.0011661145479138213} {:x 217, :y -0.0011661145479138213} {:x 218, :y -0.0011661145479138213} {:x 219, :y -0.0011661145479138213} {:x 220, :y -0.0011661145479138213} {:x 221, :y -0.0011661145479138213} {:x 222, :y -0.0011661145479138213} {:x 223, :y -0.0011661145479138213} {:x 224, :y -0.0011661145479138213} {:x 225, :y -0.0011661145479138213} {:x 226, :y -0.0011661145479138213} {:x 227, :y -0.0011661145479138213} {:x 228, :y -0.0011661145479138213} {:x 229, :y -0.0011661145479138213} {:x 230, :y -0.0011661145479138213} {:x 231, :y -0.0011661145479138213} {:x 232, :y -0.0011661145479138213} {:x 233, :y -0.0011661145479138213} {:x 234, :y -0.0011661145479138213} {:x 235, :y -0.0011661145479138213} {:x 236, :y -0.0011661145479138213} {:x 237, :y -0.0011661145479138213} {:x 238, :y -0.0011661145479138213} {:x 239, :y -0.0011661145479138213} {:x 240, :y -0.0011661145479138213} {:x 241, :y -0.0011661145479138213} {:x 242, :y -0.0011661145479138213} {:x 243, :y -0.0011661145479138213} {:x 244, :y -0.0011661145479138213} {:x 245, :y -0.0011661145479138213} {:x 246, :y -0.0011661145479138213} {:x 247, :y -0.0011661145479138213} {:x 248, :y -0.0011661145479138213} {:x 249, :y -0.0011661145479138213})}], :width 400, :height 247.2188, :padding {:bottom 20, :top 10, :right 10, :left 50}}}"}
-;; <=
-
-;; @@
-(def bests-1b (doall (map #(best-in-generation-1b % (:score-1a-func config)
-                                                    (:score-1b-func config) 
-                                                    (:score-2-func config)) all-individuals)))
-(list-plot (map :score-1b bests-1b) :joined true)
-;; @@
-;; =>
-;;; {"type":"vega","content":{"axes":[{"type":"x","scale":"x"},{"type":"y","scale":"y"}],"scales":[{"name":"x","type":"linear","range":"width","zero":false,"domain":{"data":"9e4e9e2e-2775-4865-9ce6-90f4327300b2","field":"data.x"}},{"name":"y","type":"linear","range":"height","nice":true,"zero":false,"domain":{"data":"9e4e9e2e-2775-4865-9ce6-90f4327300b2","field":"data.y"}}],"marks":[{"type":"line","from":{"data":"9e4e9e2e-2775-4865-9ce6-90f4327300b2"},"properties":{"enter":{"x":{"field":"data.x","scale":"x"},"y":{"field":"data.y","scale":"y"},"stroke":{"value":"#FF29D2"},"strokeWidth":{"value":2},"strokeOpacity":{"value":1}}}}],"data":[{"name":"9e4e9e2e-2775-4865-9ce6-90f4327300b2","values":[{"x":0,"y":-34.76109066978097},{"x":1,"y":-34.76109066978097},{"x":2,"y":-65.97724350425415},{"x":3,"y":-33.09195374697447},{"x":4,"y":-34.76109066978097},{"x":5,"y":-34.76109066978097},{"x":6,"y":-34.76109066978097},{"x":7,"y":-42.49810014164541},{"x":8,"y":-42.49810014164541},{"x":9,"y":-42.49810014164541},{"x":10,"y":-10.304004239849746},{"x":11,"y":-10.304004239849746},{"x":12,"y":-9.144890192372259},{"x":13,"y":-9.144890192372259},{"x":14,"y":-9.144890192372259},{"x":15,"y":-9.144890192372259},{"x":16,"y":-9.144890192372259},{"x":17,"y":-9.144890192372259},{"x":18,"y":-9.144890192372259},{"x":19,"y":-9.019949338398874},{"x":20,"y":-9.019949338398874},{"x":21,"y":-9.019949338398874},{"x":22,"y":-9.019949338398874},{"x":23,"y":-9.019949338398874},{"x":24,"y":-9.019949338398874},{"x":25,"y":-9.058728104784677},{"x":26,"y":-9.019949338398874},{"x":27,"y":-9.019949338398874},{"x":28,"y":-9.019949338398874},{"x":29,"y":-9.019949338398874},{"x":30,"y":-9.019949338398874},{"x":31,"y":-9.019949338398874},{"x":32,"y":-9.058728104784677},{"x":33,"y":-9.016617292771116},{"x":34,"y":-9.019949338398874},{"x":35,"y":-9.016617292771116},{"x":36,"y":-9.016617292771116},{"x":37,"y":-9.019949338398874},{"x":38,"y":-9.016617292771116},{"x":39,"y":-9.016617292771116},{"x":40,"y":-9.019949338398874},{"x":41,"y":-9.016617292771116},{"x":42,"y":-9.016617292771116},{"x":43,"y":-9.016617292771116},{"x":44,"y":-9.016617292771116},{"x":45,"y":-9.016617292771116},{"x":46,"y":-9.016617292771116},{"x":47,"y":-9.016617292771116},{"x":48,"y":-9.016617292771116},{"x":49,"y":-9.016617292771116},{"x":50,"y":-9.016617292771116},{"x":51,"y":-9.016617292771116},{"x":52,"y":-9.016617292771116},{"x":53,"y":-4.211439159767906},{"x":54,"y":-4.211439159767906},{"x":55,"y":-4.211439159767906},{"x":56,"y":-4.211439159767906},{"x":57,"y":-4.211439159767906},{"x":58,"y":-4.04261295546894},{"x":59,"y":-4.04261295546894},{"x":60,"y":-4.04261295546894},{"x":61,"y":-4.152486628070619},{"x":62,"y":-4.211439159767906},{"x":63,"y":-4.152486628070619},{"x":64,"y":-3.256881012581289},{"x":65,"y":-3.256881012581289},{"x":66,"y":-3.256881012581289},{"x":67,"y":-3.256881012581289},{"x":68,"y":-2.866606227122247},{"x":69,"y":-3.2054698951542377},{"x":70,"y":-3.2054698951542377},{"x":71,"y":-2.866606227122247},{"x":72,"y":-3.0236890679225326},{"x":73,"y":-3.218179109506309},{"x":74,"y":-2.1253035682893824},{"x":75,"y":-2.1253035682893824},{"x":76,"y":-2.1253035682893824},{"x":77,"y":-2.1253035682893824},{"x":78,"y":-2.1253035682893824},{"x":79,"y":-2.1253035682893824},{"x":80,"y":-2.1253035682893824},{"x":81,"y":-2.1253035682893824},{"x":82,"y":-2.1253035682893824},{"x":83,"y":-2.1253035682893824},{"x":84,"y":-2.1253035682893824},{"x":85,"y":-2.1253035682893824},{"x":86,"y":-2.1644341389840065},{"x":87,"y":-2.1253035682893824},{"x":88,"y":-2.1253035682893824},{"x":89,"y":-2.1253035682893824},{"x":90,"y":-2.1253035682893824},{"x":91,"y":-2.1253035682893824},{"x":92,"y":-2.1253035682893824},{"x":93,"y":-2.1253035682893824},{"x":94,"y":-2.1253035682893824},{"x":95,"y":-2.1253035682893824},{"x":96,"y":-2.1644341389840065},{"x":97,"y":-2.1644341389840065},{"x":98,"y":-2.1253035682893824},{"x":99,"y":-2.1253035682893824},{"x":100,"y":-2.1253035682893824},{"x":101,"y":-2.1644341389840065},{"x":102,"y":-2.1644341389840065},{"x":103,"y":-2.1644341389840065},{"x":104,"y":-2.1644341389840065},{"x":105,"y":-2.0430930952859967},{"x":106,"y":-2.0430930952859967},{"x":107,"y":-2.0430930952859967},{"x":108,"y":-2.0430930952859967},{"x":109,"y":-2.5989988883957267},{"x":110,"y":-2.0430930952859967},{"x":111,"y":-2.0430930952859967},{"x":112,"y":-2.5989988883957267},{"x":113,"y":-2.5989988883957267},{"x":114,"y":-2.0430930952859967},{"x":115,"y":-2.0430930952859967},{"x":116,"y":-2.0430930952859967},{"x":117,"y":-2.0430930952859967},{"x":118,"y":-2.0430930952859967},{"x":119,"y":-2.0430930952859967},{"x":120,"y":-2.0430930952859967},{"x":121,"y":-2.0430930952859967},{"x":122,"y":-2.5989988883957267},{"x":123,"y":-2.5989988883957267},{"x":124,"y":-2.0430930952859967},{"x":125,"y":-8.881198320072144},{"x":126,"y":-2.0430930952859967},{"x":127,"y":-2.0430930952859967},{"x":128,"y":-2.0430930952859967},{"x":129,"y":-2.0430930952859967},{"x":130,"y":-2.0430930952859967},{"x":131,"y":-2.0430930952859967},{"x":132,"y":-2.0430930952859967},{"x":133,"y":-2.5989988883957267},{"x":134,"y":-2.5989988883957267},{"x":135,"y":-2.0430930952859967},{"x":136,"y":-2.5989988883957267},{"x":137,"y":-2.0430930952859967},{"x":138,"y":-2.0430930952859967},{"x":139,"y":-2.0430930952859967},{"x":140,"y":-2.0430930952859967},{"x":141,"y":-2.0430930952859967},{"x":142,"y":-2.0430930952859967},{"x":143,"y":-2.0430930952859967},{"x":144,"y":-2.0430930952859967},{"x":145,"y":-2.0430930952859967},{"x":146,"y":-2.0430930952859967},{"x":147,"y":-2.0430930952859967},{"x":148,"y":-2.0430930952859967},{"x":149,"y":-2.0430930952859967},{"x":150,"y":-2.0430930952859967},{"x":151,"y":-2.0430930952859967},{"x":152,"y":-2.0430930952859967},{"x":153,"y":-2.0430930952859967},{"x":154,"y":-2.0430930952859967},{"x":155,"y":-2.0430930952859967},{"x":156,"y":-2.0430930952859967},{"x":157,"y":-2.0430930952859967},{"x":158,"y":-2.0430930952859967},{"x":159,"y":-2.0430930952859967},{"x":160,"y":-2.0430930952859967},{"x":161,"y":-2.0430930952859967},{"x":162,"y":-2.0430930952859967},{"x":163,"y":-2.0430930952859967},{"x":164,"y":-2.0430930952859967},{"x":165,"y":-2.0430930952859967},{"x":166,"y":-2.0430930952859967},{"x":167,"y":-2.0430930952859967},{"x":168,"y":-2.0430930952859967},{"x":169,"y":-2.0430930952859967},{"x":170,"y":-2.0430930952859967},{"x":171,"y":-2.0430930952859967},{"x":172,"y":-2.0430930952859967},{"x":173,"y":-2.0430930952859967},{"x":174,"y":-2.0430930952859967},{"x":175,"y":-2.0430930952859967},{"x":176,"y":-2.0430930952859967},{"x":177,"y":-2.0430930952859967},{"x":178,"y":-2.0430930952859967},{"x":179,"y":-2.0430930952859967},{"x":180,"y":-2.0430930952859967},{"x":181,"y":-2.0430930952859967},{"x":182,"y":-2.0430930952859967},{"x":183,"y":-2.0430930952859967},{"x":184,"y":-2.0430930952859967},{"x":185,"y":-2.0430930952859967},{"x":186,"y":-2.0430930952859967},{"x":187,"y":-2.0430930952859967},{"x":188,"y":-2.0430930952859967},{"x":189,"y":-2.0430930952859967},{"x":190,"y":-2.0430930952859967},{"x":191,"y":-2.0430930952859967},{"x":192,"y":-2.0430930952859967},{"x":193,"y":-2.0430930952859967},{"x":194,"y":-2.0430930952859967},{"x":195,"y":-2.0430930952859967},{"x":196,"y":-2.0430930952859967},{"x":197,"y":-2.5989988883957267},{"x":198,"y":-2.0430930952859967},{"x":199,"y":-2.0430930952859967},{"x":200,"y":-2.0430930952859967},{"x":201,"y":-2.0430930952859967},{"x":202,"y":-2.0430930952859967},{"x":203,"y":-2.0430930952859967},{"x":204,"y":-2.0430930952859967},{"x":205,"y":-2.0430930952859967},{"x":206,"y":-3.9117239388579037},{"x":207,"y":-2.0430930952859967},{"x":208,"y":-2.0430930952859967},{"x":209,"y":-2.0430930952859967},{"x":210,"y":-2.0430930952859967},{"x":211,"y":-2.0430930952859967},{"x":212,"y":-2.0430930952859967},{"x":213,"y":-2.0430930952859967},{"x":214,"y":-2.0430930952859967},{"x":215,"y":-2.0430930952859967},{"x":216,"y":-2.0430930952859967},{"x":217,"y":-2.0430930952859967},{"x":218,"y":-2.0430930952859967},{"x":219,"y":-2.0430930952859967},{"x":220,"y":-2.0430930952859967},{"x":221,"y":-2.0430930952859967},{"x":222,"y":-2.0430930952859967},{"x":223,"y":-2.0430930952859967},{"x":224,"y":-2.0430930952859967},{"x":225,"y":-2.0430930952859967},{"x":226,"y":-2.0430930952859967},{"x":227,"y":-2.0430930952859967},{"x":228,"y":-2.0430930952859967},{"x":229,"y":-2.0430930952859967},{"x":230,"y":-2.0430930952859967},{"x":231,"y":-2.0430930952859967},{"x":232,"y":-2.0430930952859967},{"x":233,"y":-2.0430930952859967},{"x":234,"y":-2.0430930952859967},{"x":235,"y":-2.0430930952859967},{"x":236,"y":-2.0430930952859967},{"x":237,"y":-2.0430930952859967},{"x":238,"y":-2.0430930952859967},{"x":239,"y":-2.0430930952859967},{"x":240,"y":-2.0430930952859967},{"x":241,"y":-2.0430930952859967},{"x":242,"y":-2.0430930952859967},{"x":243,"y":-2.0430930952859967},{"x":244,"y":-2.0430930952859967},{"x":245,"y":-2.0430930952859967},{"x":246,"y":-2.0430930952859967},{"x":247,"y":-2.0430930952859967},{"x":248,"y":-2.0430930952859967},{"x":249,"y":-2.0430930952859967}]}],"width":400,"height":247.2187957763672,"padding":{"bottom":20,"top":10,"right":10,"left":50}},"value":"#gorilla_repl.vega.VegaView{:content {:axes [{:type \"x\", :scale \"x\"} {:type \"y\", :scale \"y\"}], :scales [{:name \"x\", :type \"linear\", :range \"width\", :zero false, :domain {:data \"9e4e9e2e-2775-4865-9ce6-90f4327300b2\", :field \"data.x\"}} {:name \"y\", :type \"linear\", :range \"height\", :nice true, :zero false, :domain {:data \"9e4e9e2e-2775-4865-9ce6-90f4327300b2\", :field \"data.y\"}}], :marks [{:type \"line\", :from {:data \"9e4e9e2e-2775-4865-9ce6-90f4327300b2\"}, :properties {:enter {:x {:field \"data.x\", :scale \"x\"}, :y {:field \"data.y\", :scale \"y\"}, :stroke {:value \"#FF29D2\"}, :strokeWidth {:value 2}, :strokeOpacity {:value 1}}}}], :data [{:name \"9e4e9e2e-2775-4865-9ce6-90f4327300b2\", :values ({:x 0, :y -34.76109066978097} {:x 1, :y -34.76109066978097} {:x 2, :y -65.97724350425415} {:x 3, :y -33.09195374697447} {:x 4, :y -34.76109066978097} {:x 5, :y -34.76109066978097} {:x 6, :y -34.76109066978097} {:x 7, :y -42.49810014164541} {:x 8, :y -42.49810014164541} {:x 9, :y -42.49810014164541} {:x 10, :y -10.304004239849746} {:x 11, :y -10.304004239849746} {:x 12, :y -9.144890192372259} {:x 13, :y -9.144890192372259} {:x 14, :y -9.144890192372259} {:x 15, :y -9.144890192372259} {:x 16, :y -9.144890192372259} {:x 17, :y -9.144890192372259} {:x 18, :y -9.144890192372259} {:x 19, :y -9.019949338398874} {:x 20, :y -9.019949338398874} {:x 21, :y -9.019949338398874} {:x 22, :y -9.019949338398874} {:x 23, :y -9.019949338398874} {:x 24, :y -9.019949338398874} {:x 25, :y -9.058728104784677} {:x 26, :y -9.019949338398874} {:x 27, :y -9.019949338398874} {:x 28, :y -9.019949338398874} {:x 29, :y -9.019949338398874} {:x 30, :y -9.019949338398874} {:x 31, :y -9.019949338398874} {:x 32, :y -9.058728104784677} {:x 33, :y -9.016617292771116} {:x 34, :y -9.019949338398874} {:x 35, :y -9.016617292771116} {:x 36, :y -9.016617292771116} {:x 37, :y -9.019949338398874} {:x 38, :y -9.016617292771116} {:x 39, :y -9.016617292771116} {:x 40, :y -9.019949338398874} {:x 41, :y -9.016617292771116} {:x 42, :y -9.016617292771116} {:x 43, :y -9.016617292771116} {:x 44, :y -9.016617292771116} {:x 45, :y -9.016617292771116} {:x 46, :y -9.016617292771116} {:x 47, :y -9.016617292771116} {:x 48, :y -9.016617292771116} {:x 49, :y -9.016617292771116} {:x 50, :y -9.016617292771116} {:x 51, :y -9.016617292771116} {:x 52, :y -9.016617292771116} {:x 53, :y -4.211439159767906} {:x 54, :y -4.211439159767906} {:x 55, :y -4.211439159767906} {:x 56, :y -4.211439159767906} {:x 57, :y -4.211439159767906} {:x 58, :y -4.04261295546894} {:x 59, :y -4.04261295546894} {:x 60, :y -4.04261295546894} {:x 61, :y -4.152486628070619} {:x 62, :y -4.211439159767906} {:x 63, :y -4.152486628070619} {:x 64, :y -3.256881012581289} {:x 65, :y -3.256881012581289} {:x 66, :y -3.256881012581289} {:x 67, :y -3.256881012581289} {:x 68, :y -2.866606227122247} {:x 69, :y -3.2054698951542377} {:x 70, :y -3.2054698951542377} {:x 71, :y -2.866606227122247} {:x 72, :y -3.0236890679225326} {:x 73, :y -3.218179109506309} {:x 74, :y -2.1253035682893824} {:x 75, :y -2.1253035682893824} {:x 76, :y -2.1253035682893824} {:x 77, :y -2.1253035682893824} {:x 78, :y -2.1253035682893824} {:x 79, :y -2.1253035682893824} {:x 80, :y -2.1253035682893824} {:x 81, :y -2.1253035682893824} {:x 82, :y -2.1253035682893824} {:x 83, :y -2.1253035682893824} {:x 84, :y -2.1253035682893824} {:x 85, :y -2.1253035682893824} {:x 86, :y -2.1644341389840065} {:x 87, :y -2.1253035682893824} {:x 88, :y -2.1253035682893824} {:x 89, :y -2.1253035682893824} {:x 90, :y -2.1253035682893824} {:x 91, :y -2.1253035682893824} {:x 92, :y -2.1253035682893824} {:x 93, :y -2.1253035682893824} {:x 94, :y -2.1253035682893824} {:x 95, :y -2.1253035682893824} {:x 96, :y -2.1644341389840065} {:x 97, :y -2.1644341389840065} {:x 98, :y -2.1253035682893824} {:x 99, :y -2.1253035682893824} {:x 100, :y -2.1253035682893824} {:x 101, :y -2.1644341389840065} {:x 102, :y -2.1644341389840065} {:x 103, :y -2.1644341389840065} {:x 104, :y -2.1644341389840065} {:x 105, :y -2.0430930952859967} {:x 106, :y -2.0430930952859967} {:x 107, :y -2.0430930952859967} {:x 108, :y -2.0430930952859967} {:x 109, :y -2.5989988883957267} {:x 110, :y -2.0430930952859967} {:x 111, :y -2.0430930952859967} {:x 112, :y -2.5989988883957267} {:x 113, :y -2.5989988883957267} {:x 114, :y -2.0430930952859967} {:x 115, :y -2.0430930952859967} {:x 116, :y -2.0430930952859967} {:x 117, :y -2.0430930952859967} {:x 118, :y -2.0430930952859967} {:x 119, :y -2.0430930952859967} {:x 120, :y -2.0430930952859967} {:x 121, :y -2.0430930952859967} {:x 122, :y -2.5989988883957267} {:x 123, :y -2.5989988883957267} {:x 124, :y -2.0430930952859967} {:x 125, :y -8.881198320072144} {:x 126, :y -2.0430930952859967} {:x 127, :y -2.0430930952859967} {:x 128, :y -2.0430930952859967} {:x 129, :y -2.0430930952859967} {:x 130, :y -2.0430930952859967} {:x 131, :y -2.0430930952859967} {:x 132, :y -2.0430930952859967} {:x 133, :y -2.5989988883957267} {:x 134, :y -2.5989988883957267} {:x 135, :y -2.0430930952859967} {:x 136, :y -2.5989988883957267} {:x 137, :y -2.0430930952859967} {:x 138, :y -2.0430930952859967} {:x 139, :y -2.0430930952859967} {:x 140, :y -2.0430930952859967} {:x 141, :y -2.0430930952859967} {:x 142, :y -2.0430930952859967} {:x 143, :y -2.0430930952859967} {:x 144, :y -2.0430930952859967} {:x 145, :y -2.0430930952859967} {:x 146, :y -2.0430930952859967} {:x 147, :y -2.0430930952859967} {:x 148, :y -2.0430930952859967} {:x 149, :y -2.0430930952859967} {:x 150, :y -2.0430930952859967} {:x 151, :y -2.0430930952859967} {:x 152, :y -2.0430930952859967} {:x 153, :y -2.0430930952859967} {:x 154, :y -2.0430930952859967} {:x 155, :y -2.0430930952859967} {:x 156, :y -2.0430930952859967} {:x 157, :y -2.0430930952859967} {:x 158, :y -2.0430930952859967} {:x 159, :y -2.0430930952859967} {:x 160, :y -2.0430930952859967} {:x 161, :y -2.0430930952859967} {:x 162, :y -2.0430930952859967} {:x 163, :y -2.0430930952859967} {:x 164, :y -2.0430930952859967} {:x 165, :y -2.0430930952859967} {:x 166, :y -2.0430930952859967} {:x 167, :y -2.0430930952859967} {:x 168, :y -2.0430930952859967} {:x 169, :y -2.0430930952859967} {:x 170, :y -2.0430930952859967} {:x 171, :y -2.0430930952859967} {:x 172, :y -2.0430930952859967} {:x 173, :y -2.0430930952859967} {:x 174, :y -2.0430930952859967} {:x 175, :y -2.0430930952859967} {:x 176, :y -2.0430930952859967} {:x 177, :y -2.0430930952859967} {:x 178, :y -2.0430930952859967} {:x 179, :y -2.0430930952859967} {:x 180, :y -2.0430930952859967} {:x 181, :y -2.0430930952859967} {:x 182, :y -2.0430930952859967} {:x 183, :y -2.0430930952859967} {:x 184, :y -2.0430930952859967} {:x 185, :y -2.0430930952859967} {:x 186, :y -2.0430930952859967} {:x 187, :y -2.0430930952859967} {:x 188, :y -2.0430930952859967} {:x 189, :y -2.0430930952859967} {:x 190, :y -2.0430930952859967} {:x 191, :y -2.0430930952859967} {:x 192, :y -2.0430930952859967} {:x 193, :y -2.0430930952859967} {:x 194, :y -2.0430930952859967} {:x 195, :y -2.0430930952859967} {:x 196, :y -2.0430930952859967} {:x 197, :y -2.5989988883957267} {:x 198, :y -2.0430930952859967} {:x 199, :y -2.0430930952859967} {:x 200, :y -2.0430930952859967} {:x 201, :y -2.0430930952859967} {:x 202, :y -2.0430930952859967} {:x 203, :y -2.0430930952859967} {:x 204, :y -2.0430930952859967} {:x 205, :y -2.0430930952859967} {:x 206, :y -3.9117239388579037} {:x 207, :y -2.0430930952859967} {:x 208, :y -2.0430930952859967} {:x 209, :y -2.0430930952859967} {:x 210, :y -2.0430930952859967} {:x 211, :y -2.0430930952859967} {:x 212, :y -2.0430930952859967} {:x 213, :y -2.0430930952859967} {:x 214, :y -2.0430930952859967} {:x 215, :y -2.0430930952859967} {:x 216, :y -2.0430930952859967} {:x 217, :y -2.0430930952859967} {:x 218, :y -2.0430930952859967} {:x 219, :y -2.0430930952859967} {:x 220, :y -2.0430930952859967} {:x 221, :y -2.0430930952859967} {:x 222, :y -2.0430930952859967} {:x 223, :y -2.0430930952859967} {:x 224, :y -2.0430930952859967} {:x 225, :y -2.0430930952859967} {:x 226, :y -2.0430930952859967} {:x 227, :y -2.0430930952859967} {:x 228, :y -2.0430930952859967} {:x 229, :y -2.0430930952859967} {:x 230, :y -2.0430930952859967} {:x 231, :y -2.0430930952859967} {:x 232, :y -2.0430930952859967} {:x 233, :y -2.0430930952859967} {:x 234, :y -2.0430930952859967} {:x 235, :y -2.0430930952859967} {:x 236, :y -2.0430930952859967} {:x 237, :y -2.0430930952859967} {:x 238, :y -2.0430930952859967} {:x 239, :y -2.0430930952859967} {:x 240, :y -2.0430930952859967} {:x 241, :y -2.0430930952859967} {:x 242, :y -2.0430930952859967} {:x 243, :y -2.0430930952859967} {:x 244, :y -2.0430930952859967} {:x 245, :y -2.0430930952859967} {:x 246, :y -2.0430930952859967} {:x 247, :y -2.0430930952859967} {:x 248, :y -2.0430930952859967} {:x 249, :y -2.0430930952859967})}], :width 400, :height 247.2188, :padding {:bottom 20, :top 10, :right 10, :left 50}}}"}
+;;; {"type":"vega","content":{"axes":[{"type":"x","scale":"x"},{"type":"y","scale":"y"}],"scales":[{"name":"x","type":"linear","range":"width","zero":false,"domain":{"data":"ef2503af-d002-42f4-9721-a53877271e07","field":"data.x"}},{"name":"y","type":"linear","range":"height","nice":true,"zero":false,"domain":{"data":"ef2503af-d002-42f4-9721-a53877271e07","field":"data.y"}}],"marks":[{"type":"line","from":{"data":"ef2503af-d002-42f4-9721-a53877271e07"},"properties":{"enter":{"x":{"field":"data.x","scale":"x"},"y":{"field":"data.y","scale":"y"},"stroke":{"value":"#FF29D2"},"strokeWidth":{"value":2},"strokeOpacity":{"value":1}}}}],"data":[{"name":"ef2503af-d002-42f4-9721-a53877271e07","values":[{"x":0,"y":-1500.1570525387544},{"x":1,"y":-1500.1570525387544},{"x":2,"y":-1500.1570525387544},{"x":3,"y":-1500.1570525387544},{"x":4,"y":-1501.6226091965918},{"x":5,"y":-1489.953319027598},{"x":6,"y":-1489.953319027598},{"x":7,"y":-1489.953319027598},{"x":8,"y":-1489.953319027598},{"x":9,"y":-1489.953319027598},{"x":10,"y":-1489.953319027598},{"x":11,"y":-1489.953319027598},{"x":12,"y":-1489.953319027598},{"x":13,"y":-1489.953319027598},{"x":14,"y":-1332.0150106150836},{"x":15,"y":-1334.3370708207149},{"x":16,"y":-1280.7978291421323},{"x":17,"y":-1280.7978291421323},{"x":18,"y":-943.3719761983092},{"x":19,"y":-943.3719761983092},{"x":20,"y":-943.3719761983092},{"x":21,"y":-943.3719761983092},{"x":22,"y":-943.3719761983092},{"x":23,"y":-814.8995562334005},{"x":24,"y":-814.8995562334005},{"x":25,"y":-814.8995562334005},{"x":26,"y":-814.8995562334005},{"x":27,"y":-814.8995562334005},{"x":28,"y":-814.8995562334005},{"x":29,"y":-696.477961153641},{"x":30,"y":-480.9227252588062},{"x":31,"y":-799.0693645511384},{"x":32,"y":-779.5873490024088},{"x":33,"y":-480.9227252588062},{"x":34,"y":-480.9227252588062},{"x":35,"y":-480.9227252588062},{"x":36,"y":-480.9227252588062},{"x":37,"y":-476.6281464231755},{"x":38,"y":-476.6281464231755},{"x":39,"y":-476.6281464231755},{"x":40,"y":-466.24031134203875},{"x":41,"y":-466.24031134203875},{"x":42,"y":-466.24031134203875},{"x":43,"y":-468.87193614369573},{"x":44,"y":-468.87193614369573},{"x":45,"y":-466.24031134203875},{"x":46,"y":-463.17764554616303},{"x":47,"y":-463.17764554616303},{"x":48,"y":-463.17764554616303},{"x":49,"y":-463.17764554616303},{"x":50,"y":-463.17764554616303},{"x":51,"y":-463.17764554616303},{"x":52,"y":-463.17764554616303},{"x":53,"y":-463.17764554616286},{"x":54,"y":-463.17764554616286},{"x":55,"y":-463.17764554616286},{"x":56,"y":-463.17764554616286},{"x":57,"y":-463.17764554616286},{"x":58,"y":-463.17764554616286},{"x":59,"y":-463.17764554616286},{"x":60,"y":-463.17764554616286},{"x":61,"y":-396.7772695436263},{"x":62,"y":-463.17764554616286},{"x":63,"y":-463.17764554616286},{"x":64,"y":-396.7772695436263},{"x":65,"y":-402.968833807517},{"x":66,"y":-237.44276287069917},{"x":67,"y":-237.44276287069917},{"x":68,"y":-385.1469621905467},{"x":69,"y":-385.1469621905467},{"x":70,"y":-336.3542095141924},{"x":71,"y":-275.39530098560715},{"x":72,"y":-275.39530098560715},{"x":73,"y":-195.38798582828562},{"x":74,"y":-195.38798582828562},{"x":75,"y":-195.38798582828562},{"x":76,"y":-354.72159354490327},{"x":77,"y":-397.57036112770396},{"x":78,"y":-195.38798582828562},{"x":79,"y":-195.38798582828562},{"x":80,"y":-195.38798582828562},{"x":81,"y":-126.97357066532584},{"x":82,"y":-126.97357066532584},{"x":83,"y":-126.97357066532584},{"x":84,"y":-126.97357066532584},{"x":85,"y":-46.91754807488195},{"x":86,"y":-126.97357066532584},{"x":87,"y":-46.91754807488195},{"x":88,"y":-46.91754807488195},{"x":89,"y":-58.329357692175364},{"x":90,"y":-126.97357066532584},{"x":91,"y":-46.91754807488195},{"x":92,"y":-46.91754807488195},{"x":93,"y":-46.91754807488195},{"x":94,"y":-46.91754807488195},{"x":95,"y":-46.91754807488195},{"x":96,"y":-46.91754807488195},{"x":97,"y":-46.91754807488195},{"x":98,"y":-46.91754807488195},{"x":99,"y":-46.91754807488195},{"x":100,"y":-46.91754807488195},{"x":101,"y":-46.91754807488195},{"x":102,"y":-46.91754807488195},{"x":103,"y":-46.91754807488195},{"x":104,"y":-46.91754807488195},{"x":105,"y":-46.91754807488195},{"x":106,"y":-46.91754807488195},{"x":107,"y":-45.770714805431105},{"x":108,"y":-45.770714805431105},{"x":109,"y":-45.770714805431105},{"x":110,"y":-45.770714805431105},{"x":111,"y":-45.770714805431105},{"x":112,"y":-45.770714805431105},{"x":113,"y":-45.770714805431105},{"x":114,"y":-45.770714805431105},{"x":115,"y":-45.770714805431105},{"x":116,"y":-45.770714805431105},{"x":117,"y":-45.770714805431105},{"x":118,"y":-45.770714805431105},{"x":119,"y":-23.19807879098183},{"x":120,"y":-23.19807879098183},{"x":121,"y":-23.19807879098183},{"x":122,"y":-23.19807879098183},{"x":123,"y":-23.19807879098183},{"x":124,"y":-23.19807879098183},{"x":125,"y":-23.19807879098183},{"x":126,"y":-23.19807879098183},{"x":127,"y":-23.19807879098183},{"x":128,"y":-23.19807879098183},{"x":129,"y":-23.19807879098183},{"x":130,"y":-23.19807879098183},{"x":131,"y":-23.19807879098183},{"x":132,"y":-22.77634652603483},{"x":133,"y":-22.77634652603483},{"x":134,"y":-22.77634652603483},{"x":135,"y":-22.77634652603483},{"x":136,"y":-22.77634652603483},{"x":137,"y":-22.77634652603483},{"x":138,"y":-22.77634652603483},{"x":139,"y":-51.27325049304451},{"x":140,"y":-51.27325049304451},{"x":141,"y":-22.77634652603483},{"x":142,"y":-22.77634652603483},{"x":143,"y":-22.77634652603483},{"x":144,"y":-22.77634652603483},{"x":145,"y":-51.27325049304451},{"x":146,"y":-22.77634652603483},{"x":147,"y":-22.77634652603483},{"x":148,"y":-51.27325049304451},{"x":149,"y":-22.77634652603483},{"x":150,"y":-22.77634652603483},{"x":151,"y":-22.77634652603483},{"x":152,"y":-22.77634652603483},{"x":153,"y":-22.77634652603483},{"x":154,"y":-22.77634652603483},{"x":155,"y":-22.77634652603483},{"x":156,"y":-22.77634652603483},{"x":157,"y":-22.77634652603483},{"x":158,"y":-22.77634652603483},{"x":159,"y":-22.77634652603483},{"x":160,"y":-22.77634652603483},{"x":161,"y":-22.77634652603483},{"x":162,"y":-22.77634652603483},{"x":163,"y":-23.04890195670744},{"x":164,"y":-23.04890195670744},{"x":165,"y":-22.77634652603483},{"x":166,"y":-22.77634652603483},{"x":167,"y":-22.77634652603483},{"x":168,"y":-22.77634652603483},{"x":169,"y":-22.77634652603483},{"x":170,"y":-22.77634652603483},{"x":171,"y":-22.77634652603483},{"x":172,"y":-22.77634652603483},{"x":173,"y":-22.77634652603483},{"x":174,"y":-22.77634652603483},{"x":175,"y":-22.77634652603483},{"x":176,"y":-22.77634652603483},{"x":177,"y":-22.77634652603483},{"x":178,"y":-22.77634652603483},{"x":179,"y":-22.77634652603483},{"x":180,"y":-22.77634652603483},{"x":181,"y":-22.77634652603483},{"x":182,"y":-22.77634652603483},{"x":183,"y":-22.77634652603483},{"x":184,"y":-22.77634652603483},{"x":185,"y":-22.77634652603483},{"x":186,"y":-22.77634652603483},{"x":187,"y":-22.77634652603483},{"x":188,"y":-22.77634652603483},{"x":189,"y":-22.77634652603483},{"x":190,"y":-22.77634652603483},{"x":191,"y":-22.77634652603483},{"x":192,"y":-22.77634652603483},{"x":193,"y":-22.77634652603483},{"x":194,"y":-22.77634652603483},{"x":195,"y":-22.77634652603483},{"x":196,"y":-22.77634652603483},{"x":197,"y":-22.77634652603483},{"x":198,"y":-22.77634652603483},{"x":199,"y":-22.77634652603483},{"x":200,"y":-22.77634652603483},{"x":201,"y":-23.04890195670744},{"x":202,"y":-23.04890195670744},{"x":203,"y":-22.77634652603483},{"x":204,"y":-22.77634652603483},{"x":205,"y":-22.77634652603483},{"x":206,"y":-22.77634652603483},{"x":207,"y":-22.77634652603483},{"x":208,"y":-22.77634652603483},{"x":209,"y":-22.77634652603483},{"x":210,"y":-22.77634652603483},{"x":211,"y":-22.77634652603483},{"x":212,"y":-22.77634652603483},{"x":213,"y":-22.77634652603483},{"x":214,"y":-22.77634652603483},{"x":215,"y":-22.77634652603483},{"x":216,"y":-22.77634652603483},{"x":217,"y":-22.77634652603483},{"x":218,"y":-22.77634652603483},{"x":219,"y":-22.77634652603483},{"x":220,"y":-22.77634652603483},{"x":221,"y":-22.77634652603483},{"x":222,"y":-22.77634652603483},{"x":223,"y":-22.77634652603483},{"x":224,"y":-22.77634652603483},{"x":225,"y":-22.77634652603483},{"x":226,"y":-22.77634652603483},{"x":227,"y":-22.77634652603483},{"x":228,"y":-22.77634652603483},{"x":229,"y":-22.77634652603483},{"x":230,"y":-22.77634652603483},{"x":231,"y":-22.77634652603483},{"x":232,"y":-22.77634652603483},{"x":233,"y":-22.77634652603483},{"x":234,"y":-22.77634652603483},{"x":235,"y":-22.77634652603483},{"x":236,"y":-22.77634652603483},{"x":237,"y":-22.77634652603483},{"x":238,"y":-22.77634652603483},{"x":239,"y":-22.77634652603483},{"x":240,"y":-22.77634652603483},{"x":241,"y":-22.77634652603483},{"x":242,"y":-23.04890195670744},{"x":243,"y":-22.77634652603483},{"x":244,"y":-23.04890195670744},{"x":245,"y":-23.04890195670744},{"x":246,"y":-23.04890195670744},{"x":247,"y":-22.77634652603483},{"x":248,"y":-22.77634652603483},{"x":249,"y":-22.77634652603483},{"x":250,"y":-22.77634652603483},{"x":251,"y":-22.77634652603483},{"x":252,"y":-22.77634652603483},{"x":253,"y":-22.77634652603483},{"x":254,"y":-22.77634652603483},{"x":255,"y":-23.04890195670744},{"x":256,"y":-22.77634652603483},{"x":257,"y":-22.77634652603483},{"x":258,"y":-22.77634652603483},{"x":259,"y":-22.77634652603483},{"x":260,"y":-22.77634652603483},{"x":261,"y":-22.77634652603483},{"x":262,"y":-22.77634652603483},{"x":263,"y":-22.94067158655214},{"x":264,"y":-22.77634652603483},{"x":265,"y":-22.77634652603483},{"x":266,"y":-22.77634652603483},{"x":267,"y":-22.77634652603483},{"x":268,"y":-22.77634652603483},{"x":269,"y":-22.77634652603483},{"x":270,"y":-22.77634652603483},{"x":271,"y":-22.77634652603483},{"x":272,"y":-22.77634652603483},{"x":273,"y":-22.77634652603483},{"x":274,"y":-22.77634652603483},{"x":275,"y":-22.77634652603483},{"x":276,"y":-22.94067158655214},{"x":277,"y":-22.77634652603483},{"x":278,"y":-22.94067158655214},{"x":279,"y":-22.94067158655214},{"x":280,"y":-22.77634652603483},{"x":281,"y":-22.77634652603483},{"x":282,"y":-22.77634652603483},{"x":283,"y":-22.77634652603483},{"x":284,"y":-22.77634652603483},{"x":285,"y":-22.77634652603483},{"x":286,"y":-22.77634652603483},{"x":287,"y":-22.77634652603483},{"x":288,"y":-22.77634652603483},{"x":289,"y":-22.77634652603483},{"x":290,"y":-22.77634652603483},{"x":291,"y":-22.77634652603483},{"x":292,"y":-22.77634652603483},{"x":293,"y":-22.77634652603483},{"x":294,"y":-22.77634652603483},{"x":295,"y":-22.77634652603483},{"x":296,"y":-22.77634652603483},{"x":297,"y":-22.77634652603483},{"x":298,"y":-22.77634652603483},{"x":299,"y":-22.77634652603483},{"x":300,"y":-22.77634652603483},{"x":301,"y":-22.77634652603483},{"x":302,"y":-22.77634652603483},{"x":303,"y":-22.77634652603483},{"x":304,"y":-23.21004625636178},{"x":305,"y":-22.77634652603483},{"x":306,"y":-22.77634652603483},{"x":307,"y":-22.77634652603483},{"x":308,"y":-22.77634652603483},{"x":309,"y":-22.77634652603483},{"x":310,"y":-22.77634652603483},{"x":311,"y":-22.77634652603483},{"x":312,"y":-22.77634652603483},{"x":313,"y":-22.77634652603483},{"x":314,"y":-22.77634652603483},{"x":315,"y":-22.77634652603483},{"x":316,"y":-22.77634652603483},{"x":317,"y":-22.77634652603483},{"x":318,"y":-22.77634652603483},{"x":319,"y":-22.77634652603483},{"x":320,"y":-22.77634652603483},{"x":321,"y":-22.94067158655214},{"x":322,"y":-22.77634652603483},{"x":323,"y":-22.77634652603483},{"x":324,"y":-22.77634652603483},{"x":325,"y":-22.77634652603483},{"x":326,"y":-22.77634652603483},{"x":327,"y":-22.77634652603483},{"x":328,"y":-22.77634652603483},{"x":329,"y":-22.77634652603483},{"x":330,"y":-22.77634652603483},{"x":331,"y":-22.94067158655214},{"x":332,"y":-22.77634652603483},{"x":333,"y":-22.77634652603483},{"x":334,"y":-22.94067158655214},{"x":335,"y":-22.77634652603483},{"x":336,"y":-22.94067158655214},{"x":337,"y":-22.94067158655214},{"x":338,"y":-22.77634652603483},{"x":339,"y":-22.94067158655214},{"x":340,"y":-22.94067158655214},{"x":341,"y":-22.77634652603483},{"x":342,"y":-22.77634652603483},{"x":343,"y":-22.77634652603483},{"x":344,"y":-22.77634652603483},{"x":345,"y":-22.77634652603483},{"x":346,"y":-22.77634652603483},{"x":347,"y":-22.77634652603483},{"x":348,"y":-22.77634652603483},{"x":349,"y":-22.77634652603483},{"x":350,"y":-22.77634652603483},{"x":351,"y":-22.77634652603483},{"x":352,"y":-22.77634652603483},{"x":353,"y":-22.94067158655214},{"x":354,"y":-22.94067158655214},{"x":355,"y":-22.77634652603483},{"x":356,"y":-69.62322759752371},{"x":357,"y":-69.62322759752371},{"x":358,"y":-22.77634652603483},{"x":359,"y":-22.77634652603483},{"x":360,"y":-22.77634652603483},{"x":361,"y":-22.77634652603483},{"x":362,"y":-22.77634652603483},{"x":363,"y":-22.77634652603483},{"x":364,"y":-22.77634652603483},{"x":365,"y":-22.94067158655214},{"x":366,"y":-22.94067158655214},{"x":367,"y":-22.94067158655214},{"x":368,"y":-22.94067158655214},{"x":369,"y":-69.62322759752371},{"x":370,"y":-22.94067158655214},{"x":371,"y":-69.62322759752371},{"x":372,"y":-22.94067158655214},{"x":373,"y":-69.62322759752371},{"x":374,"y":-22.94067158655214},{"x":375,"y":-22.94067158655214},{"x":376,"y":-22.77634652603483},{"x":377,"y":-22.77634652603483},{"x":378,"y":-22.77634652603483},{"x":379,"y":-22.77634652603483},{"x":380,"y":-22.77634652603483},{"x":381,"y":-22.77634652603483},{"x":382,"y":-22.77634652603483},{"x":383,"y":-22.77634652603483},{"x":384,"y":-22.77634652603483},{"x":385,"y":-22.77634652603483},{"x":386,"y":-22.77634652603483},{"x":387,"y":-22.77634652603483},{"x":388,"y":-22.77634652603483},{"x":389,"y":-22.77634652603483},{"x":390,"y":-22.94067158655214},{"x":391,"y":-22.77634652603483},{"x":392,"y":-22.77634652603483},{"x":393,"y":-22.77634652603483},{"x":394,"y":-22.77634652603483},{"x":395,"y":-22.77634652603483},{"x":396,"y":-22.77634652603483},{"x":397,"y":-22.77634652603483},{"x":398,"y":-22.77634652603483},{"x":399,"y":-22.77634652603483},{"x":400,"y":-22.77634652603483},{"x":401,"y":-22.77634652603483},{"x":402,"y":-22.77634652603483},{"x":403,"y":-22.77634652603483},{"x":404,"y":-22.77634652603483},{"x":405,"y":-22.77634652603483},{"x":406,"y":-22.77634652603483},{"x":407,"y":-22.77634652603483},{"x":408,"y":-22.77634652603483},{"x":409,"y":-22.77634652603483},{"x":410,"y":-22.77634652603483},{"x":411,"y":-22.77634652603483},{"x":412,"y":-22.77634652603483},{"x":413,"y":-66.69103384559492},{"x":414,"y":-22.77634652603483},{"x":415,"y":-22.77634652603483},{"x":416,"y":-22.77634652603483},{"x":417,"y":-22.77634652603483},{"x":418,"y":-22.77634652603483},{"x":419,"y":-22.77634652603483},{"x":420,"y":-22.77634652603483},{"x":421,"y":-22.77634652603483},{"x":422,"y":-22.77634652603483},{"x":423,"y":-22.77634652603483},{"x":424,"y":-22.77634652603483},{"x":425,"y":-22.77634652603483},{"x":426,"y":-22.77634652603483},{"x":427,"y":-22.77634652603483},{"x":428,"y":-22.94067158655214},{"x":429,"y":-22.77634652603483},{"x":430,"y":-22.77634652603483},{"x":431,"y":-22.94067158655214},{"x":432,"y":-22.77634652603483},{"x":433,"y":-22.94067158655214},{"x":434,"y":-22.94067158655214},{"x":435,"y":-22.77634652603483},{"x":436,"y":-22.77634652603483},{"x":437,"y":-22.77634652603483},{"x":438,"y":-22.77634652603483},{"x":439,"y":-22.77634652603483},{"x":440,"y":-22.77634652603483},{"x":441,"y":-22.77634652603483},{"x":442,"y":-22.77634652603483},{"x":443,"y":-22.77634652603483},{"x":444,"y":-22.77634652603483},{"x":445,"y":-22.77634652603483},{"x":446,"y":-22.77634652603483},{"x":447,"y":-22.94067158655214},{"x":448,"y":-22.94067158655214},{"x":449,"y":-22.94067158655214},{"x":450,"y":-22.94067158655214},{"x":451,"y":-22.77634652603483},{"x":452,"y":-22.77634652603483},{"x":453,"y":-22.77634652603483},{"x":454,"y":-22.77634652603483},{"x":455,"y":-22.94067158655214},{"x":456,"y":-22.77634652603483},{"x":457,"y":-22.77634652603483},{"x":458,"y":-22.77634652603483},{"x":459,"y":-22.77634652603483},{"x":460,"y":-22.77634652603483},{"x":461,"y":-22.77634652603483},{"x":462,"y":-22.77634652603483},{"x":463,"y":-22.77634652603483},{"x":464,"y":-22.77634652603483},{"x":465,"y":-22.77634652603483},{"x":466,"y":-22.94067158655214},{"x":467,"y":-22.94067158655214},{"x":468,"y":-22.77634652603483},{"x":469,"y":-22.77634652603483},{"x":470,"y":-22.77634652603483},{"x":471,"y":-22.77634652603483},{"x":472,"y":-22.77634652603483},{"x":473,"y":-22.77634652603483},{"x":474,"y":-22.77634652603483},{"x":475,"y":-22.77634652603483},{"x":476,"y":-22.77634652603483},{"x":477,"y":-22.77634652603483},{"x":478,"y":-22.77634652603483},{"x":479,"y":-22.77634652603483},{"x":480,"y":-22.77634652603483},{"x":481,"y":-22.77634652603483},{"x":482,"y":-64.91481223042567},{"x":483,"y":-22.77634652603483},{"x":484,"y":-22.77634652603483},{"x":485,"y":-22.77634652603483},{"x":486,"y":-22.77634652603483},{"x":487,"y":-22.77634652603483},{"x":488,"y":-22.94067158655214},{"x":489,"y":-22.77634652603483},{"x":490,"y":-22.77634652603483},{"x":491,"y":-22.77634652603483},{"x":492,"y":-22.77634652603483},{"x":493,"y":-22.77634652603483},{"x":494,"y":-22.77634652603483},{"x":495,"y":-22.77634652603483},{"x":496,"y":-22.77634652603483},{"x":497,"y":-22.77634652603483},{"x":498,"y":-22.77634652603483},{"x":499,"y":-22.77634652603483},{"x":500,"y":-22.77634652603483},{"x":501,"y":-22.77634652603483},{"x":502,"y":-66.69103384559492},{"x":503,"y":-66.69103384559492},{"x":504,"y":-66.69103384559492},{"x":505,"y":-66.69103384559492},{"x":506,"y":-22.77634652603483},{"x":507,"y":-22.77634652603483},{"x":508,"y":-22.77634652603483},{"x":509,"y":-22.77634652603483},{"x":510,"y":-22.77634652603483},{"x":511,"y":-22.77634652603483},{"x":512,"y":-22.77634652603483},{"x":513,"y":-22.77634652603483},{"x":514,"y":-22.77634652603483},{"x":515,"y":-22.77634652603483},{"x":516,"y":-22.77634652603483},{"x":517,"y":-22.77634652603483},{"x":518,"y":-22.77634652603483},{"x":519,"y":-22.77634652603483},{"x":520,"y":-22.77634652603483},{"x":521,"y":-22.77634652603483},{"x":522,"y":-22.77634652603483},{"x":523,"y":-22.77634652603483},{"x":524,"y":-22.77634652603483},{"x":525,"y":-22.77634652603483},{"x":526,"y":-22.77634652603483},{"x":527,"y":-22.77634652603483},{"x":528,"y":-22.77634652603483},{"x":529,"y":-22.77634652603483},{"x":530,"y":-22.77634652603483},{"x":531,"y":-22.77634652603483},{"x":532,"y":-22.77634652603483},{"x":533,"y":-22.77634652603483},{"x":534,"y":-22.77634652603483},{"x":535,"y":-22.77634652603483},{"x":536,"y":-22.77634652603483},{"x":537,"y":-22.77634652603483},{"x":538,"y":-22.77634652603483},{"x":539,"y":-22.77634652603483},{"x":540,"y":-22.77634652603483},{"x":541,"y":-22.77634652603483},{"x":542,"y":-22.77634652603483},{"x":543,"y":-22.77634652603483},{"x":544,"y":-22.77634652603483},{"x":545,"y":-22.77634652603483},{"x":546,"y":-22.77634652603483},{"x":547,"y":-22.77634652603483},{"x":548,"y":-22.77634652603483},{"x":549,"y":-22.77634652603483},{"x":550,"y":-22.77634652603483},{"x":551,"y":-22.77634652603483},{"x":552,"y":-22.94067158655214},{"x":553,"y":-22.94067158655214},{"x":554,"y":-22.77634652603483},{"x":555,"y":-22.77634652603483},{"x":556,"y":-22.94067158655214},{"x":557,"y":-22.94067158655214},{"x":558,"y":-22.77634652603483},{"x":559,"y":-22.77634652603483},{"x":560,"y":-22.77634652603483},{"x":561,"y":-22.77634652603483},{"x":562,"y":-22.94067158655214},{"x":563,"y":-22.94067158655214},{"x":564,"y":-22.77634652603483},{"x":565,"y":-22.77634652603483},{"x":566,"y":-22.77634652603483},{"x":567,"y":-22.77634652603483},{"x":568,"y":-22.77634652603483},{"x":569,"y":-22.77634652603483},{"x":570,"y":-22.77634652603483},{"x":571,"y":-22.77634652603483},{"x":572,"y":-22.77634652603483},{"x":573,"y":-22.77634652603483},{"x":574,"y":-22.77634652603483},{"x":575,"y":-22.77634652603483},{"x":576,"y":-22.77634652603483},{"x":577,"y":-22.77634652603483},{"x":578,"y":-22.77634652603483},{"x":579,"y":-22.77634652603483},{"x":580,"y":-22.77634652603483},{"x":581,"y":-22.77634652603483},{"x":582,"y":-22.77634652603483},{"x":583,"y":-22.77634652603483},{"x":584,"y":-22.94067158655214},{"x":585,"y":-22.77634652603483},{"x":586,"y":-22.77634652603483},{"x":587,"y":-22.77634652603483},{"x":588,"y":-22.77634652603483},{"x":589,"y":-22.77634652603483},{"x":590,"y":-22.77634652603483},{"x":591,"y":-22.77634652603483},{"x":592,"y":-22.77634652603483},{"x":593,"y":-22.77634652603483},{"x":594,"y":-22.77634652603483},{"x":595,"y":-22.77634652603483},{"x":596,"y":-22.94067158655214},{"x":597,"y":-22.94067158655214},{"x":598,"y":-22.77634652603483},{"x":599,"y":-22.77634652603483},{"x":600,"y":-22.77634652603483},{"x":601,"y":-22.77634652603483},{"x":602,"y":-22.77634652603483},{"x":603,"y":-22.94067158655214},{"x":604,"y":-22.94067158655214},{"x":605,"y":-22.77634652603483},{"x":606,"y":-22.77634652603483},{"x":607,"y":-22.77634652603483},{"x":608,"y":-22.77634652603483},{"x":609,"y":-22.77634652603483},{"x":610,"y":-22.77634652603483},{"x":611,"y":-22.77634652603483},{"x":612,"y":-22.77634652603483},{"x":613,"y":-22.77634652603483},{"x":614,"y":-22.77634652603483},{"x":615,"y":-22.77634652603483},{"x":616,"y":-22.94067158655214},{"x":617,"y":-22.94067158655214},{"x":618,"y":-22.77634652603483},{"x":619,"y":-22.77634652603483},{"x":620,"y":-22.94067158655214},{"x":621,"y":-22.94067158655214},{"x":622,"y":-22.77634652603483},{"x":623,"y":-22.77634652603483},{"x":624,"y":-22.77634652603483},{"x":625,"y":-22.77634652603483},{"x":626,"y":-22.77634652603483},{"x":627,"y":-22.77634652603483},{"x":628,"y":-22.77634652603483},{"x":629,"y":-22.94067158655214},{"x":630,"y":-22.77634652603483},{"x":631,"y":-22.77634652603483},{"x":632,"y":-22.77634652603483},{"x":633,"y":-22.77634652603483},{"x":634,"y":-22.77634652603483},{"x":635,"y":-22.77634652603483},{"x":636,"y":-22.77634652603483},{"x":637,"y":-22.77634652603483},{"x":638,"y":-22.77634652603483},{"x":639,"y":-22.94067158655214},{"x":640,"y":-22.77634652603483},{"x":641,"y":-22.77634652603483},{"x":642,"y":-22.77634652603483},{"x":643,"y":-22.94067158655214},{"x":644,"y":-22.77634652603483},{"x":645,"y":-22.77634652603483},{"x":646,"y":-22.77634652603483},{"x":647,"y":-22.77634652603483},{"x":648,"y":-22.77634652603483},{"x":649,"y":-22.77634652603483},{"x":650,"y":-22.77634652603483},{"x":651,"y":-22.77634652603483},{"x":652,"y":-22.77634652603483},{"x":653,"y":-22.77634652603483},{"x":654,"y":-22.77634652603483},{"x":655,"y":-22.77634652603483},{"x":656,"y":-22.77634652603483},{"x":657,"y":-22.77634652603483},{"x":658,"y":-22.77634652603483},{"x":659,"y":-22.77634652603483},{"x":660,"y":-22.77634652603483},{"x":661,"y":-22.77634652603483},{"x":662,"y":-22.77634652603483},{"x":663,"y":-22.77634652603483},{"x":664,"y":-22.77634652603483},{"x":665,"y":-22.77634652603483},{"x":666,"y":-22.77634652603483},{"x":667,"y":-22.94067158655214},{"x":668,"y":-22.77634652603483},{"x":669,"y":-22.77634652603483},{"x":670,"y":-22.77634652603483},{"x":671,"y":-22.94067158655214},{"x":672,"y":-22.94067158655214},{"x":673,"y":-22.94067158655214},{"x":674,"y":-22.77634652603483},{"x":675,"y":-22.94067158655214},{"x":676,"y":-22.94067158655214},{"x":677,"y":-22.94067158655214},{"x":678,"y":-22.77634652603483},{"x":679,"y":-22.77634652603483},{"x":680,"y":-22.77634652603483},{"x":681,"y":-22.77634652603483},{"x":682,"y":-23.19807879098183},{"x":683,"y":-40.274696158379435},{"x":684,"y":-22.77634652603483},{"x":685,"y":-22.94067158655214},{"x":686,"y":-22.77634652603483},{"x":687,"y":-22.77634652603483},{"x":688,"y":-22.77634652603483},{"x":689,"y":-22.77634652603483},{"x":690,"y":-22.77634652603483},{"x":691,"y":-22.77634652603483},{"x":692,"y":-22.77634652603483},{"x":693,"y":-22.77634652603483},{"x":694,"y":-22.77634652603483},{"x":695,"y":-22.77634652603483},{"x":696,"y":-22.77634652603483},{"x":697,"y":-22.77634652603483},{"x":698,"y":-22.77634652603483},{"x":699,"y":-22.77634652603483},{"x":700,"y":-22.77634652603483},{"x":701,"y":-22.77634652603483},{"x":702,"y":-22.77634652603483},{"x":703,"y":-22.77634652603483},{"x":704,"y":-22.77634652603483},{"x":705,"y":-22.77634652603483},{"x":706,"y":-22.77634652603483},{"x":707,"y":-22.77634652603483},{"x":708,"y":-22.77634652603483},{"x":709,"y":-22.77634652603483},{"x":710,"y":-22.77634652603483},{"x":711,"y":-22.77634652603483},{"x":712,"y":-22.77634652603483},{"x":713,"y":-22.77634652603483},{"x":714,"y":-22.77634652603483},{"x":715,"y":-22.94067158655214},{"x":716,"y":-22.77634652603483},{"x":717,"y":-22.77634652603483},{"x":718,"y":-22.77634652603483},{"x":719,"y":-22.77634652603483},{"x":720,"y":-22.77634652603483},{"x":721,"y":-22.77634652603483},{"x":722,"y":-22.77634652603483},{"x":723,"y":-22.77634652603483},{"x":724,"y":-22.77634652603483},{"x":725,"y":-22.77634652603483},{"x":726,"y":-22.77634652603483},{"x":727,"y":-22.77634652603483},{"x":728,"y":-22.77634652603483},{"x":729,"y":-22.77634652603483},{"x":730,"y":-22.77634652603483},{"x":731,"y":-22.77634652603483},{"x":732,"y":-22.77634652603483},{"x":733,"y":-22.77634652603483},{"x":734,"y":-22.77634652603483},{"x":735,"y":-22.77634652603483},{"x":736,"y":-22.77634652603483},{"x":737,"y":-22.77634652603483},{"x":738,"y":-22.77634652603483},{"x":739,"y":-22.77634652603483},{"x":740,"y":-22.77634652603483},{"x":741,"y":-22.77634652603483},{"x":742,"y":-22.77634652603483},{"x":743,"y":-22.77634652603483},{"x":744,"y":-22.77634652603483},{"x":745,"y":-22.77634652603483},{"x":746,"y":-22.77634652603483},{"x":747,"y":-22.776346526034814},{"x":748,"y":-22.776346526034814},{"x":749,"y":-22.776346526034814},{"x":750,"y":-22.77634652603483},{"x":751,"y":-22.776346526034814},{"x":752,"y":-22.776346526034814},{"x":753,"y":-22.776346526034814},{"x":754,"y":-22.776346526034814},{"x":755,"y":-22.776346526034814},{"x":756,"y":-22.776346526034814},{"x":757,"y":-22.776346526034814},{"x":758,"y":-22.776346526034814},{"x":759,"y":-22.776346526034814},{"x":760,"y":-22.776346526034814},{"x":761,"y":-22.776346526034814},{"x":762,"y":-22.776346526034814},{"x":763,"y":-22.776346526034814},{"x":764,"y":-22.776346526034814},{"x":765,"y":-22.776346526034814},{"x":766,"y":-22.94067158655214},{"x":767,"y":-22.776346526034814},{"x":768,"y":-22.776346526034814},{"x":769,"y":-22.776346526034814},{"x":770,"y":-22.94067158655214},{"x":771,"y":-22.776346526034814},{"x":772,"y":-22.776346526034814},{"x":773,"y":-22.776346526034814},{"x":774,"y":-22.776346526034814},{"x":775,"y":-22.94067158655214},{"x":776,"y":-22.776346526034814},{"x":777,"y":-22.77634652603483},{"x":778,"y":-22.77634652603483},{"x":779,"y":-22.77634652603483},{"x":780,"y":-22.776346526034814},{"x":781,"y":-22.776346526034814},{"x":782,"y":-22.776346526034814},{"x":783,"y":-22.94067158655214},{"x":784,"y":-22.776346526034814},{"x":785,"y":-22.776346526034814},{"x":786,"y":-22.77634652603483},{"x":787,"y":-22.776346526034814},{"x":788,"y":-22.776346526034814},{"x":789,"y":-22.776346526034814},{"x":790,"y":-22.77634652603483},{"x":791,"y":-22.776346526034814},{"x":792,"y":-22.776346526034814},{"x":793,"y":-22.776346526034814},{"x":794,"y":-22.776346526034814},{"x":795,"y":-22.77634652603483},{"x":796,"y":-22.776346526034814},{"x":797,"y":-22.776346526034814},{"x":798,"y":-22.776346526034814},{"x":799,"y":-22.776346526034814},{"x":800,"y":-22.776346526034814},{"x":801,"y":-22.776346526034814},{"x":802,"y":-22.776346526034814},{"x":803,"y":-23.19807879098183},{"x":804,"y":-22.776346526034814},{"x":805,"y":-22.776346526034814},{"x":806,"y":-22.776346526034814},{"x":807,"y":-22.776346526034814},{"x":808,"y":-22.776346526034814},{"x":809,"y":-22.776346526034814},{"x":810,"y":-22.776346526034814},{"x":811,"y":-22.776346526034814},{"x":812,"y":-22.776346526034814},{"x":813,"y":-22.776346526034814},{"x":814,"y":-22.77634652603483},{"x":815,"y":-22.776346526034814},{"x":816,"y":-22.776346526034814},{"x":817,"y":-22.776346526034814},{"x":818,"y":-22.776346526034814},{"x":819,"y":-22.776346526034814},{"x":820,"y":-22.776346526034814},{"x":821,"y":-22.776346526034814},{"x":822,"y":-22.94067158655214},{"x":823,"y":-22.776346526034814},{"x":824,"y":-22.776346526034814},{"x":825,"y":-22.776346526034814},{"x":826,"y":-22.776346526034814},{"x":827,"y":-22.776346526034814},{"x":828,"y":-22.776346526034814},{"x":829,"y":-22.776346526034814},{"x":830,"y":-22.776346526034814},{"x":831,"y":-22.776346526034814},{"x":832,"y":-22.776346526034814},{"x":833,"y":-22.776346526034814},{"x":834,"y":-22.776346526034814},{"x":835,"y":-22.776346526034814},{"x":836,"y":-22.776346526034814},{"x":837,"y":-22.776346526034814},{"x":838,"y":-22.776346526034814},{"x":839,"y":-22.776346526034814},{"x":840,"y":-22.776346526034814},{"x":841,"y":-22.776346526034814},{"x":842,"y":-22.776346526034814},{"x":843,"y":-22.776346526034814},{"x":844,"y":-22.776346526034814},{"x":845,"y":-22.776346526034814},{"x":846,"y":-22.776346526034814},{"x":847,"y":-22.776346526034814},{"x":848,"y":-22.776346526034814},{"x":849,"y":-22.776346526034814},{"x":850,"y":-22.776346526034814},{"x":851,"y":-22.776346526034814},{"x":852,"y":-22.776346526034814},{"x":853,"y":-22.776346526034814},{"x":854,"y":-22.776346526034814},{"x":855,"y":-22.77634652603482},{"x":856,"y":-22.776346526034814},{"x":857,"y":-22.776346526034814},{"x":858,"y":-22.776346526034814},{"x":859,"y":-22.776346526034814},{"x":860,"y":-22.776346526034814},{"x":861,"y":-22.776346526034814},{"x":862,"y":-22.776346526034814},{"x":863,"y":-22.776346526034814},{"x":864,"y":-22.776346526034814},{"x":865,"y":-22.776346526034814},{"x":866,"y":-22.776346526034814},{"x":867,"y":-22.77634652603482},{"x":868,"y":-22.776346526034814},{"x":869,"y":-22.77634652603482},{"x":870,"y":-22.77634652603482},{"x":871,"y":-22.77634652603482},{"x":872,"y":-22.77634652603482},{"x":873,"y":-22.776346526034814},{"x":874,"y":-22.776346526034814},{"x":875,"y":-22.776346526034814},{"x":876,"y":-22.776346526034814},{"x":877,"y":-22.77634652603482},{"x":878,"y":-22.77634652603482},{"x":879,"y":-22.776346526034814},{"x":880,"y":-22.776346526034814},{"x":881,"y":-22.776346526034814},{"x":882,"y":-22.776346526034814},{"x":883,"y":-22.776346526034814},{"x":884,"y":-22.776346526034814},{"x":885,"y":-22.776346526034814},{"x":886,"y":-22.776346526034814},{"x":887,"y":-22.776346526034814},{"x":888,"y":-22.776346526034814},{"x":889,"y":-22.776346526034814},{"x":890,"y":-22.776346526034814},{"x":891,"y":-22.776346526034814},{"x":892,"y":-22.776346526034814},{"x":893,"y":-22.776346526034814},{"x":894,"y":-22.776346526034814},{"x":895,"y":-22.776346526034814},{"x":896,"y":-22.776346526034814},{"x":897,"y":-22.776346526034814},{"x":898,"y":-22.776346526034814},{"x":899,"y":-22.776346526034814},{"x":900,"y":-22.776346526034814},{"x":901,"y":-22.776346526034814},{"x":902,"y":-22.776346526034814},{"x":903,"y":-22.776346526034814},{"x":904,"y":-22.776346526034814},{"x":905,"y":-22.776346526034814},{"x":906,"y":-22.77634652603482},{"x":907,"y":-22.776346526034814},{"x":908,"y":-22.776346526034814},{"x":909,"y":-22.776346526034814},{"x":910,"y":-22.776346526034814},{"x":911,"y":-22.776346526034814},{"x":912,"y":-22.776346526034814},{"x":913,"y":-22.77634652603482},{"x":914,"y":-22.77634652603482},{"x":915,"y":-22.77634652603482},{"x":916,"y":-22.776346526034814},{"x":917,"y":-22.776346526034814},{"x":918,"y":-22.776346526034814},{"x":919,"y":-22.776346526034814},{"x":920,"y":-22.776346526034814},{"x":921,"y":-22.776346526034814},{"x":922,"y":-22.776346526034814},{"x":923,"y":-22.776346526034814},{"x":924,"y":-22.776346526034814},{"x":925,"y":-22.776346526034814},{"x":926,"y":-22.776346526034814},{"x":927,"y":-22.776346526034814},{"x":928,"y":-22.776346526034814},{"x":929,"y":-22.776346526034814},{"x":930,"y":-22.776346526034814},{"x":931,"y":-22.776346526034814},{"x":932,"y":-22.776346526034814},{"x":933,"y":-22.776346526034814},{"x":934,"y":-22.776346526034814},{"x":935,"y":-22.776346526034814},{"x":936,"y":-22.776346526034814},{"x":937,"y":-22.776346526034814},{"x":938,"y":-22.776346526034814},{"x":939,"y":-22.77634652603482},{"x":940,"y":-22.77634652603482},{"x":941,"y":-22.776346526034814},{"x":942,"y":-22.776346526034814},{"x":943,"y":-22.776346526034814},{"x":944,"y":-22.776346526034814},{"x":945,"y":-22.776346526034814},{"x":946,"y":-22.776346526034814},{"x":947,"y":-22.776346526034814},{"x":948,"y":-22.776346526034814},{"x":949,"y":-22.776346526034814},{"x":950,"y":-22.776346526034814},{"x":951,"y":-22.776346526034814},{"x":952,"y":-22.776346526034814},{"x":953,"y":-22.94067158655214},{"x":954,"y":-22.77634652603482},{"x":955,"y":-22.776346526034814},{"x":956,"y":-22.776346526034814},{"x":957,"y":-22.776346526034814},{"x":958,"y":-22.776346526034814},{"x":959,"y":-22.77634652603482},{"x":960,"y":-22.776346526034814},{"x":961,"y":-22.776346526034814},{"x":962,"y":-22.776346526034814},{"x":963,"y":-22.776346526034814},{"x":964,"y":-22.776346526034814},{"x":965,"y":-22.776346526034814},{"x":966,"y":-22.776346526034814},{"x":967,"y":-22.776346526034814},{"x":968,"y":-22.776346526034814},{"x":969,"y":-22.776346526034814},{"x":970,"y":-22.776346526034814},{"x":971,"y":-22.776346526034814},{"x":972,"y":-22.776346526034814},{"x":973,"y":-22.776346526034814},{"x":974,"y":-22.776346526034814},{"x":975,"y":-22.776346526034814},{"x":976,"y":-22.776346526034814},{"x":977,"y":-22.776346526034814},{"x":978,"y":-22.77634652603482},{"x":979,"y":-22.77634652603482},{"x":980,"y":-22.776346526034814},{"x":981,"y":-22.776346526034814},{"x":982,"y":-22.776346526034814},{"x":983,"y":-22.776346526034814},{"x":984,"y":-22.77634652603482},{"x":985,"y":-22.776346526034814},{"x":986,"y":-22.776346526034814},{"x":987,"y":-22.776346526034814},{"x":988,"y":-22.776346526034814},{"x":989,"y":-22.776346526034814},{"x":990,"y":-22.776346526034814},{"x":991,"y":-22.776346526034814},{"x":992,"y":-22.776346526034814},{"x":993,"y":-22.776346526034814},{"x":994,"y":-22.776346526034814},{"x":995,"y":-22.776346526034814},{"x":996,"y":-22.776346526034814},{"x":997,"y":-22.776346526034814},{"x":998,"y":-22.776346526034814},{"x":999,"y":-22.776346526034814}]}],"width":400,"height":247.2187957763672,"padding":{"bottom":20,"top":10,"right":10,"left":50}},"value":"#gorilla_repl.vega.VegaView{:content {:axes [{:type \"x\", :scale \"x\"} {:type \"y\", :scale \"y\"}], :scales [{:name \"x\", :type \"linear\", :range \"width\", :zero false, :domain {:data \"ef2503af-d002-42f4-9721-a53877271e07\", :field \"data.x\"}} {:name \"y\", :type \"linear\", :range \"height\", :nice true, :zero false, :domain {:data \"ef2503af-d002-42f4-9721-a53877271e07\", :field \"data.y\"}}], :marks [{:type \"line\", :from {:data \"ef2503af-d002-42f4-9721-a53877271e07\"}, :properties {:enter {:x {:field \"data.x\", :scale \"x\"}, :y {:field \"data.y\", :scale \"y\"}, :stroke {:value \"#FF29D2\"}, :strokeWidth {:value 2}, :strokeOpacity {:value 1}}}}], :data [{:name \"ef2503af-d002-42f4-9721-a53877271e07\", :values ({:x 0, :y -1500.1570525387544} {:x 1, :y -1500.1570525387544} {:x 2, :y -1500.1570525387544} {:x 3, :y -1500.1570525387544} {:x 4, :y -1501.6226091965918} {:x 5, :y -1489.953319027598} {:x 6, :y -1489.953319027598} {:x 7, :y -1489.953319027598} {:x 8, :y -1489.953319027598} {:x 9, :y -1489.953319027598} {:x 10, :y -1489.953319027598} {:x 11, :y -1489.953319027598} {:x 12, :y -1489.953319027598} {:x 13, :y -1489.953319027598} {:x 14, :y -1332.0150106150836} {:x 15, :y -1334.3370708207149} {:x 16, :y -1280.7978291421323} {:x 17, :y -1280.7978291421323} {:x 18, :y -943.3719761983092} {:x 19, :y -943.3719761983092} {:x 20, :y -943.3719761983092} {:x 21, :y -943.3719761983092} {:x 22, :y -943.3719761983092} {:x 23, :y -814.8995562334005} {:x 24, :y -814.8995562334005} {:x 25, :y -814.8995562334005} {:x 26, :y -814.8995562334005} {:x 27, :y -814.8995562334005} {:x 28, :y -814.8995562334005} {:x 29, :y -696.477961153641} {:x 30, :y -480.9227252588062} {:x 31, :y -799.0693645511384} {:x 32, :y -779.5873490024088} {:x 33, :y -480.9227252588062} {:x 34, :y -480.9227252588062} {:x 35, :y -480.9227252588062} {:x 36, :y -480.9227252588062} {:x 37, :y -476.6281464231755} {:x 38, :y -476.6281464231755} {:x 39, :y -476.6281464231755} {:x 40, :y -466.24031134203875} {:x 41, :y -466.24031134203875} {:x 42, :y -466.24031134203875} {:x 43, :y -468.87193614369573} {:x 44, :y -468.87193614369573} {:x 45, :y -466.24031134203875} {:x 46, :y -463.17764554616303} {:x 47, :y -463.17764554616303} {:x 48, :y -463.17764554616303} {:x 49, :y -463.17764554616303} {:x 50, :y -463.17764554616303} {:x 51, :y -463.17764554616303} {:x 52, :y -463.17764554616303} {:x 53, :y -463.17764554616286} {:x 54, :y -463.17764554616286} {:x 55, :y -463.17764554616286} {:x 56, :y -463.17764554616286} {:x 57, :y -463.17764554616286} {:x 58, :y -463.17764554616286} {:x 59, :y -463.17764554616286} {:x 60, :y -463.17764554616286} {:x 61, :y -396.7772695436263} {:x 62, :y -463.17764554616286} {:x 63, :y -463.17764554616286} {:x 64, :y -396.7772695436263} {:x 65, :y -402.968833807517} {:x 66, :y -237.44276287069917} {:x 67, :y -237.44276287069917} {:x 68, :y -385.1469621905467} {:x 69, :y -385.1469621905467} {:x 70, :y -336.3542095141924} {:x 71, :y -275.39530098560715} {:x 72, :y -275.39530098560715} {:x 73, :y -195.38798582828562} {:x 74, :y -195.38798582828562} {:x 75, :y -195.38798582828562} {:x 76, :y -354.72159354490327} {:x 77, :y -397.57036112770396} {:x 78, :y -195.38798582828562} {:x 79, :y -195.38798582828562} {:x 80, :y -195.38798582828562} {:x 81, :y -126.97357066532584} {:x 82, :y -126.97357066532584} {:x 83, :y -126.97357066532584} {:x 84, :y -126.97357066532584} {:x 85, :y -46.91754807488195} {:x 86, :y -126.97357066532584} {:x 87, :y -46.91754807488195} {:x 88, :y -46.91754807488195} {:x 89, :y -58.329357692175364} {:x 90, :y -126.97357066532584} {:x 91, :y -46.91754807488195} {:x 92, :y -46.91754807488195} {:x 93, :y -46.91754807488195} {:x 94, :y -46.91754807488195} {:x 95, :y -46.91754807488195} {:x 96, :y -46.91754807488195} {:x 97, :y -46.91754807488195} {:x 98, :y -46.91754807488195} {:x 99, :y -46.91754807488195} {:x 100, :y -46.91754807488195} {:x 101, :y -46.91754807488195} {:x 102, :y -46.91754807488195} {:x 103, :y -46.91754807488195} {:x 104, :y -46.91754807488195} {:x 105, :y -46.91754807488195} {:x 106, :y -46.91754807488195} {:x 107, :y -45.770714805431105} {:x 108, :y -45.770714805431105} {:x 109, :y -45.770714805431105} {:x 110, :y -45.770714805431105} {:x 111, :y -45.770714805431105} {:x 112, :y -45.770714805431105} {:x 113, :y -45.770714805431105} {:x 114, :y -45.770714805431105} {:x 115, :y -45.770714805431105} {:x 116, :y -45.770714805431105} {:x 117, :y -45.770714805431105} {:x 118, :y -45.770714805431105} {:x 119, :y -23.19807879098183} {:x 120, :y -23.19807879098183} {:x 121, :y -23.19807879098183} {:x 122, :y -23.19807879098183} {:x 123, :y -23.19807879098183} {:x 124, :y -23.19807879098183} {:x 125, :y -23.19807879098183} {:x 126, :y -23.19807879098183} {:x 127, :y -23.19807879098183} {:x 128, :y -23.19807879098183} {:x 129, :y -23.19807879098183} {:x 130, :y -23.19807879098183} {:x 131, :y -23.19807879098183} {:x 132, :y -22.77634652603483} {:x 133, :y -22.77634652603483} {:x 134, :y -22.77634652603483} {:x 135, :y -22.77634652603483} {:x 136, :y -22.77634652603483} {:x 137, :y -22.77634652603483} {:x 138, :y -22.77634652603483} {:x 139, :y -51.27325049304451} {:x 140, :y -51.27325049304451} {:x 141, :y -22.77634652603483} {:x 142, :y -22.77634652603483} {:x 143, :y -22.77634652603483} {:x 144, :y -22.77634652603483} {:x 145, :y -51.27325049304451} {:x 146, :y -22.77634652603483} {:x 147, :y -22.77634652603483} {:x 148, :y -51.27325049304451} {:x 149, :y -22.77634652603483} {:x 150, :y -22.77634652603483} {:x 151, :y -22.77634652603483} {:x 152, :y -22.77634652603483} {:x 153, :y -22.77634652603483} {:x 154, :y -22.77634652603483} {:x 155, :y -22.77634652603483} {:x 156, :y -22.77634652603483} {:x 157, :y -22.77634652603483} {:x 158, :y -22.77634652603483} {:x 159, :y -22.77634652603483} {:x 160, :y -22.77634652603483} {:x 161, :y -22.77634652603483} {:x 162, :y -22.77634652603483} {:x 163, :y -23.04890195670744} {:x 164, :y -23.04890195670744} {:x 165, :y -22.77634652603483} {:x 166, :y -22.77634652603483} {:x 167, :y -22.77634652603483} {:x 168, :y -22.77634652603483} {:x 169, :y -22.77634652603483} {:x 170, :y -22.77634652603483} {:x 171, :y -22.77634652603483} {:x 172, :y -22.77634652603483} {:x 173, :y -22.77634652603483} {:x 174, :y -22.77634652603483} {:x 175, :y -22.77634652603483} {:x 176, :y -22.77634652603483} {:x 177, :y -22.77634652603483} {:x 178, :y -22.77634652603483} {:x 179, :y -22.77634652603483} {:x 180, :y -22.77634652603483} {:x 181, :y -22.77634652603483} {:x 182, :y -22.77634652603483} {:x 183, :y -22.77634652603483} {:x 184, :y -22.77634652603483} {:x 185, :y -22.77634652603483} {:x 186, :y -22.77634652603483} {:x 187, :y -22.77634652603483} {:x 188, :y -22.77634652603483} {:x 189, :y -22.77634652603483} {:x 190, :y -22.77634652603483} {:x 191, :y -22.77634652603483} {:x 192, :y -22.77634652603483} {:x 193, :y -22.77634652603483} {:x 194, :y -22.77634652603483} {:x 195, :y -22.77634652603483} {:x 196, :y -22.77634652603483} {:x 197, :y -22.77634652603483} {:x 198, :y -22.77634652603483} {:x 199, :y -22.77634652603483} {:x 200, :y -22.77634652603483} {:x 201, :y -23.04890195670744} {:x 202, :y -23.04890195670744} {:x 203, :y -22.77634652603483} {:x 204, :y -22.77634652603483} {:x 205, :y -22.77634652603483} {:x 206, :y -22.77634652603483} {:x 207, :y -22.77634652603483} {:x 208, :y -22.77634652603483} {:x 209, :y -22.77634652603483} {:x 210, :y -22.77634652603483} {:x 211, :y -22.77634652603483} {:x 212, :y -22.77634652603483} {:x 213, :y -22.77634652603483} {:x 214, :y -22.77634652603483} {:x 215, :y -22.77634652603483} {:x 216, :y -22.77634652603483} {:x 217, :y -22.77634652603483} {:x 218, :y -22.77634652603483} {:x 219, :y -22.77634652603483} {:x 220, :y -22.77634652603483} {:x 221, :y -22.77634652603483} {:x 222, :y -22.77634652603483} {:x 223, :y -22.77634652603483} {:x 224, :y -22.77634652603483} {:x 225, :y -22.77634652603483} {:x 226, :y -22.77634652603483} {:x 227, :y -22.77634652603483} {:x 228, :y -22.77634652603483} {:x 229, :y -22.77634652603483} {:x 230, :y -22.77634652603483} {:x 231, :y -22.77634652603483} {:x 232, :y -22.77634652603483} {:x 233, :y -22.77634652603483} {:x 234, :y -22.77634652603483} {:x 235, :y -22.77634652603483} {:x 236, :y -22.77634652603483} {:x 237, :y -22.77634652603483} {:x 238, :y -22.77634652603483} {:x 239, :y -22.77634652603483} {:x 240, :y -22.77634652603483} {:x 241, :y -22.77634652603483} {:x 242, :y -23.04890195670744} {:x 243, :y -22.77634652603483} {:x 244, :y -23.04890195670744} {:x 245, :y -23.04890195670744} {:x 246, :y -23.04890195670744} {:x 247, :y -22.77634652603483} {:x 248, :y -22.77634652603483} {:x 249, :y -22.77634652603483} {:x 250, :y -22.77634652603483} {:x 251, :y -22.77634652603483} {:x 252, :y -22.77634652603483} {:x 253, :y -22.77634652603483} {:x 254, :y -22.77634652603483} {:x 255, :y -23.04890195670744} {:x 256, :y -22.77634652603483} {:x 257, :y -22.77634652603483} {:x 258, :y -22.77634652603483} {:x 259, :y -22.77634652603483} {:x 260, :y -22.77634652603483} {:x 261, :y -22.77634652603483} {:x 262, :y -22.77634652603483} {:x 263, :y -22.94067158655214} {:x 264, :y -22.77634652603483} {:x 265, :y -22.77634652603483} {:x 266, :y -22.77634652603483} {:x 267, :y -22.77634652603483} {:x 268, :y -22.77634652603483} {:x 269, :y -22.77634652603483} {:x 270, :y -22.77634652603483} {:x 271, :y -22.77634652603483} {:x 272, :y -22.77634652603483} {:x 273, :y -22.77634652603483} {:x 274, :y -22.77634652603483} {:x 275, :y -22.77634652603483} {:x 276, :y -22.94067158655214} {:x 277, :y -22.77634652603483} {:x 278, :y -22.94067158655214} {:x 279, :y -22.94067158655214} {:x 280, :y -22.77634652603483} {:x 281, :y -22.77634652603483} {:x 282, :y -22.77634652603483} {:x 283, :y -22.77634652603483} {:x 284, :y -22.77634652603483} {:x 285, :y -22.77634652603483} {:x 286, :y -22.77634652603483} {:x 287, :y -22.77634652603483} {:x 288, :y -22.77634652603483} {:x 289, :y -22.77634652603483} {:x 290, :y -22.77634652603483} {:x 291, :y -22.77634652603483} {:x 292, :y -22.77634652603483} {:x 293, :y -22.77634652603483} {:x 294, :y -22.77634652603483} {:x 295, :y -22.77634652603483} {:x 296, :y -22.77634652603483} {:x 297, :y -22.77634652603483} {:x 298, :y -22.77634652603483} {:x 299, :y -22.77634652603483} {:x 300, :y -22.77634652603483} {:x 301, :y -22.77634652603483} {:x 302, :y -22.77634652603483} {:x 303, :y -22.77634652603483} {:x 304, :y -23.21004625636178} {:x 305, :y -22.77634652603483} {:x 306, :y -22.77634652603483} {:x 307, :y -22.77634652603483} {:x 308, :y -22.77634652603483} {:x 309, :y -22.77634652603483} {:x 310, :y -22.77634652603483} {:x 311, :y -22.77634652603483} {:x 312, :y -22.77634652603483} {:x 313, :y -22.77634652603483} {:x 314, :y -22.77634652603483} {:x 315, :y -22.77634652603483} {:x 316, :y -22.77634652603483} {:x 317, :y -22.77634652603483} {:x 318, :y -22.77634652603483} {:x 319, :y -22.77634652603483} {:x 320, :y -22.77634652603483} {:x 321, :y -22.94067158655214} {:x 322, :y -22.77634652603483} {:x 323, :y -22.77634652603483} {:x 324, :y -22.77634652603483} {:x 325, :y -22.77634652603483} {:x 326, :y -22.77634652603483} {:x 327, :y -22.77634652603483} {:x 328, :y -22.77634652603483} {:x 329, :y -22.77634652603483} {:x 330, :y -22.77634652603483} {:x 331, :y -22.94067158655214} {:x 332, :y -22.77634652603483} {:x 333, :y -22.77634652603483} {:x 334, :y -22.94067158655214} {:x 335, :y -22.77634652603483} {:x 336, :y -22.94067158655214} {:x 337, :y -22.94067158655214} {:x 338, :y -22.77634652603483} {:x 339, :y -22.94067158655214} {:x 340, :y -22.94067158655214} {:x 341, :y -22.77634652603483} {:x 342, :y -22.77634652603483} {:x 343, :y -22.77634652603483} {:x 344, :y -22.77634652603483} {:x 345, :y -22.77634652603483} {:x 346, :y -22.77634652603483} {:x 347, :y -22.77634652603483} {:x 348, :y -22.77634652603483} {:x 349, :y -22.77634652603483} {:x 350, :y -22.77634652603483} {:x 351, :y -22.77634652603483} {:x 352, :y -22.77634652603483} {:x 353, :y -22.94067158655214} {:x 354, :y -22.94067158655214} {:x 355, :y -22.77634652603483} {:x 356, :y -69.62322759752371} {:x 357, :y -69.62322759752371} {:x 358, :y -22.77634652603483} {:x 359, :y -22.77634652603483} {:x 360, :y -22.77634652603483} {:x 361, :y -22.77634652603483} {:x 362, :y -22.77634652603483} {:x 363, :y -22.77634652603483} {:x 364, :y -22.77634652603483} {:x 365, :y -22.94067158655214} {:x 366, :y -22.94067158655214} {:x 367, :y -22.94067158655214} {:x 368, :y -22.94067158655214} {:x 369, :y -69.62322759752371} {:x 370, :y -22.94067158655214} {:x 371, :y -69.62322759752371} {:x 372, :y -22.94067158655214} {:x 373, :y -69.62322759752371} {:x 374, :y -22.94067158655214} {:x 375, :y -22.94067158655214} {:x 376, :y -22.77634652603483} {:x 377, :y -22.77634652603483} {:x 378, :y -22.77634652603483} {:x 379, :y -22.77634652603483} {:x 380, :y -22.77634652603483} {:x 381, :y -22.77634652603483} {:x 382, :y -22.77634652603483} {:x 383, :y -22.77634652603483} {:x 384, :y -22.77634652603483} {:x 385, :y -22.77634652603483} {:x 386, :y -22.77634652603483} {:x 387, :y -22.77634652603483} {:x 388, :y -22.77634652603483} {:x 389, :y -22.77634652603483} {:x 390, :y -22.94067158655214} {:x 391, :y -22.77634652603483} {:x 392, :y -22.77634652603483} {:x 393, :y -22.77634652603483} {:x 394, :y -22.77634652603483} {:x 395, :y -22.77634652603483} {:x 396, :y -22.77634652603483} {:x 397, :y -22.77634652603483} {:x 398, :y -22.77634652603483} {:x 399, :y -22.77634652603483} {:x 400, :y -22.77634652603483} {:x 401, :y -22.77634652603483} {:x 402, :y -22.77634652603483} {:x 403, :y -22.77634652603483} {:x 404, :y -22.77634652603483} {:x 405, :y -22.77634652603483} {:x 406, :y -22.77634652603483} {:x 407, :y -22.77634652603483} {:x 408, :y -22.77634652603483} {:x 409, :y -22.77634652603483} {:x 410, :y -22.77634652603483} {:x 411, :y -22.77634652603483} {:x 412, :y -22.77634652603483} {:x 413, :y -66.69103384559492} {:x 414, :y -22.77634652603483} {:x 415, :y -22.77634652603483} {:x 416, :y -22.77634652603483} {:x 417, :y -22.77634652603483} {:x 418, :y -22.77634652603483} {:x 419, :y -22.77634652603483} {:x 420, :y -22.77634652603483} {:x 421, :y -22.77634652603483} {:x 422, :y -22.77634652603483} {:x 423, :y -22.77634652603483} {:x 424, :y -22.77634652603483} {:x 425, :y -22.77634652603483} {:x 426, :y -22.77634652603483} {:x 427, :y -22.77634652603483} {:x 428, :y -22.94067158655214} {:x 429, :y -22.77634652603483} {:x 430, :y -22.77634652603483} {:x 431, :y -22.94067158655214} {:x 432, :y -22.77634652603483} {:x 433, :y -22.94067158655214} {:x 434, :y -22.94067158655214} {:x 435, :y -22.77634652603483} {:x 436, :y -22.77634652603483} {:x 437, :y -22.77634652603483} {:x 438, :y -22.77634652603483} {:x 439, :y -22.77634652603483} {:x 440, :y -22.77634652603483} {:x 441, :y -22.77634652603483} {:x 442, :y -22.77634652603483} {:x 443, :y -22.77634652603483} {:x 444, :y -22.77634652603483} {:x 445, :y -22.77634652603483} {:x 446, :y -22.77634652603483} {:x 447, :y -22.94067158655214} {:x 448, :y -22.94067158655214} {:x 449, :y -22.94067158655214} {:x 450, :y -22.94067158655214} {:x 451, :y -22.77634652603483} {:x 452, :y -22.77634652603483} {:x 453, :y -22.77634652603483} {:x 454, :y -22.77634652603483} {:x 455, :y -22.94067158655214} {:x 456, :y -22.77634652603483} {:x 457, :y -22.77634652603483} {:x 458, :y -22.77634652603483} {:x 459, :y -22.77634652603483} {:x 460, :y -22.77634652603483} {:x 461, :y -22.77634652603483} {:x 462, :y -22.77634652603483} {:x 463, :y -22.77634652603483} {:x 464, :y -22.77634652603483} {:x 465, :y -22.77634652603483} {:x 466, :y -22.94067158655214} {:x 467, :y -22.94067158655214} {:x 468, :y -22.77634652603483} {:x 469, :y -22.77634652603483} {:x 470, :y -22.77634652603483} {:x 471, :y -22.77634652603483} {:x 472, :y -22.77634652603483} {:x 473, :y -22.77634652603483} {:x 474, :y -22.77634652603483} {:x 475, :y -22.77634652603483} {:x 476, :y -22.77634652603483} {:x 477, :y -22.77634652603483} {:x 478, :y -22.77634652603483} {:x 479, :y -22.77634652603483} {:x 480, :y -22.77634652603483} {:x 481, :y -22.77634652603483} {:x 482, :y -64.91481223042567} {:x 483, :y -22.77634652603483} {:x 484, :y -22.77634652603483} {:x 485, :y -22.77634652603483} {:x 486, :y -22.77634652603483} {:x 487, :y -22.77634652603483} {:x 488, :y -22.94067158655214} {:x 489, :y -22.77634652603483} {:x 490, :y -22.77634652603483} {:x 491, :y -22.77634652603483} {:x 492, :y -22.77634652603483} {:x 493, :y -22.77634652603483} {:x 494, :y -22.77634652603483} {:x 495, :y -22.77634652603483} {:x 496, :y -22.77634652603483} {:x 497, :y -22.77634652603483} {:x 498, :y -22.77634652603483} {:x 499, :y -22.77634652603483} {:x 500, :y -22.77634652603483} {:x 501, :y -22.77634652603483} {:x 502, :y -66.69103384559492} {:x 503, :y -66.69103384559492} {:x 504, :y -66.69103384559492} {:x 505, :y -66.69103384559492} {:x 506, :y -22.77634652603483} {:x 507, :y -22.77634652603483} {:x 508, :y -22.77634652603483} {:x 509, :y -22.77634652603483} {:x 510, :y -22.77634652603483} {:x 511, :y -22.77634652603483} {:x 512, :y -22.77634652603483} {:x 513, :y -22.77634652603483} {:x 514, :y -22.77634652603483} {:x 515, :y -22.77634652603483} {:x 516, :y -22.77634652603483} {:x 517, :y -22.77634652603483} {:x 518, :y -22.77634652603483} {:x 519, :y -22.77634652603483} {:x 520, :y -22.77634652603483} {:x 521, :y -22.77634652603483} {:x 522, :y -22.77634652603483} {:x 523, :y -22.77634652603483} {:x 524, :y -22.77634652603483} {:x 525, :y -22.77634652603483} {:x 526, :y -22.77634652603483} {:x 527, :y -22.77634652603483} {:x 528, :y -22.77634652603483} {:x 529, :y -22.77634652603483} {:x 530, :y -22.77634652603483} {:x 531, :y -22.77634652603483} {:x 532, :y -22.77634652603483} {:x 533, :y -22.77634652603483} {:x 534, :y -22.77634652603483} {:x 535, :y -22.77634652603483} {:x 536, :y -22.77634652603483} {:x 537, :y -22.77634652603483} {:x 538, :y -22.77634652603483} {:x 539, :y -22.77634652603483} {:x 540, :y -22.77634652603483} {:x 541, :y -22.77634652603483} {:x 542, :y -22.77634652603483} {:x 543, :y -22.77634652603483} {:x 544, :y -22.77634652603483} {:x 545, :y -22.77634652603483} {:x 546, :y -22.77634652603483} {:x 547, :y -22.77634652603483} {:x 548, :y -22.77634652603483} {:x 549, :y -22.77634652603483} {:x 550, :y -22.77634652603483} {:x 551, :y -22.77634652603483} {:x 552, :y -22.94067158655214} {:x 553, :y -22.94067158655214} {:x 554, :y -22.77634652603483} {:x 555, :y -22.77634652603483} {:x 556, :y -22.94067158655214} {:x 557, :y -22.94067158655214} {:x 558, :y -22.77634652603483} {:x 559, :y -22.77634652603483} {:x 560, :y -22.77634652603483} {:x 561, :y -22.77634652603483} {:x 562, :y -22.94067158655214} {:x 563, :y -22.94067158655214} {:x 564, :y -22.77634652603483} {:x 565, :y -22.77634652603483} {:x 566, :y -22.77634652603483} {:x 567, :y -22.77634652603483} {:x 568, :y -22.77634652603483} {:x 569, :y -22.77634652603483} {:x 570, :y -22.77634652603483} {:x 571, :y -22.77634652603483} {:x 572, :y -22.77634652603483} {:x 573, :y -22.77634652603483} {:x 574, :y -22.77634652603483} {:x 575, :y -22.77634652603483} {:x 576, :y -22.77634652603483} {:x 577, :y -22.77634652603483} {:x 578, :y -22.77634652603483} {:x 579, :y -22.77634652603483} {:x 580, :y -22.77634652603483} {:x 581, :y -22.77634652603483} {:x 582, :y -22.77634652603483} {:x 583, :y -22.77634652603483} {:x 584, :y -22.94067158655214} {:x 585, :y -22.77634652603483} {:x 586, :y -22.77634652603483} {:x 587, :y -22.77634652603483} {:x 588, :y -22.77634652603483} {:x 589, :y -22.77634652603483} {:x 590, :y -22.77634652603483} {:x 591, :y -22.77634652603483} {:x 592, :y -22.77634652603483} {:x 593, :y -22.77634652603483} {:x 594, :y -22.77634652603483} {:x 595, :y -22.77634652603483} {:x 596, :y -22.94067158655214} {:x 597, :y -22.94067158655214} {:x 598, :y -22.77634652603483} {:x 599, :y -22.77634652603483} {:x 600, :y -22.77634652603483} {:x 601, :y -22.77634652603483} {:x 602, :y -22.77634652603483} {:x 603, :y -22.94067158655214} {:x 604, :y -22.94067158655214} {:x 605, :y -22.77634652603483} {:x 606, :y -22.77634652603483} {:x 607, :y -22.77634652603483} {:x 608, :y -22.77634652603483} {:x 609, :y -22.77634652603483} {:x 610, :y -22.77634652603483} {:x 611, :y -22.77634652603483} {:x 612, :y -22.77634652603483} {:x 613, :y -22.77634652603483} {:x 614, :y -22.77634652603483} {:x 615, :y -22.77634652603483} {:x 616, :y -22.94067158655214} {:x 617, :y -22.94067158655214} {:x 618, :y -22.77634652603483} {:x 619, :y -22.77634652603483} {:x 620, :y -22.94067158655214} {:x 621, :y -22.94067158655214} {:x 622, :y -22.77634652603483} {:x 623, :y -22.77634652603483} {:x 624, :y -22.77634652603483} {:x 625, :y -22.77634652603483} {:x 626, :y -22.77634652603483} {:x 627, :y -22.77634652603483} {:x 628, :y -22.77634652603483} {:x 629, :y -22.94067158655214} {:x 630, :y -22.77634652603483} {:x 631, :y -22.77634652603483} {:x 632, :y -22.77634652603483} {:x 633, :y -22.77634652603483} {:x 634, :y -22.77634652603483} {:x 635, :y -22.77634652603483} {:x 636, :y -22.77634652603483} {:x 637, :y -22.77634652603483} {:x 638, :y -22.77634652603483} {:x 639, :y -22.94067158655214} {:x 640, :y -22.77634652603483} {:x 641, :y -22.77634652603483} {:x 642, :y -22.77634652603483} {:x 643, :y -22.94067158655214} {:x 644, :y -22.77634652603483} {:x 645, :y -22.77634652603483} {:x 646, :y -22.77634652603483} {:x 647, :y -22.77634652603483} {:x 648, :y -22.77634652603483} {:x 649, :y -22.77634652603483} {:x 650, :y -22.77634652603483} {:x 651, :y -22.77634652603483} {:x 652, :y -22.77634652603483} {:x 653, :y -22.77634652603483} {:x 654, :y -22.77634652603483} {:x 655, :y -22.77634652603483} {:x 656, :y -22.77634652603483} {:x 657, :y -22.77634652603483} {:x 658, :y -22.77634652603483} {:x 659, :y -22.77634652603483} {:x 660, :y -22.77634652603483} {:x 661, :y -22.77634652603483} {:x 662, :y -22.77634652603483} {:x 663, :y -22.77634652603483} {:x 664, :y -22.77634652603483} {:x 665, :y -22.77634652603483} {:x 666, :y -22.77634652603483} {:x 667, :y -22.94067158655214} {:x 668, :y -22.77634652603483} {:x 669, :y -22.77634652603483} {:x 670, :y -22.77634652603483} {:x 671, :y -22.94067158655214} {:x 672, :y -22.94067158655214} {:x 673, :y -22.94067158655214} {:x 674, :y -22.77634652603483} {:x 675, :y -22.94067158655214} {:x 676, :y -22.94067158655214} {:x 677, :y -22.94067158655214} {:x 678, :y -22.77634652603483} {:x 679, :y -22.77634652603483} {:x 680, :y -22.77634652603483} {:x 681, :y -22.77634652603483} {:x 682, :y -23.19807879098183} {:x 683, :y -40.274696158379435} {:x 684, :y -22.77634652603483} {:x 685, :y -22.94067158655214} {:x 686, :y -22.77634652603483} {:x 687, :y -22.77634652603483} {:x 688, :y -22.77634652603483} {:x 689, :y -22.77634652603483} {:x 690, :y -22.77634652603483} {:x 691, :y -22.77634652603483} {:x 692, :y -22.77634652603483} {:x 693, :y -22.77634652603483} {:x 694, :y -22.77634652603483} {:x 695, :y -22.77634652603483} {:x 696, :y -22.77634652603483} {:x 697, :y -22.77634652603483} {:x 698, :y -22.77634652603483} {:x 699, :y -22.77634652603483} {:x 700, :y -22.77634652603483} {:x 701, :y -22.77634652603483} {:x 702, :y -22.77634652603483} {:x 703, :y -22.77634652603483} {:x 704, :y -22.77634652603483} {:x 705, :y -22.77634652603483} {:x 706, :y -22.77634652603483} {:x 707, :y -22.77634652603483} {:x 708, :y -22.77634652603483} {:x 709, :y -22.77634652603483} {:x 710, :y -22.77634652603483} {:x 711, :y -22.77634652603483} {:x 712, :y -22.77634652603483} {:x 713, :y -22.77634652603483} {:x 714, :y -22.77634652603483} {:x 715, :y -22.94067158655214} {:x 716, :y -22.77634652603483} {:x 717, :y -22.77634652603483} {:x 718, :y -22.77634652603483} {:x 719, :y -22.77634652603483} {:x 720, :y -22.77634652603483} {:x 721, :y -22.77634652603483} {:x 722, :y -22.77634652603483} {:x 723, :y -22.77634652603483} {:x 724, :y -22.77634652603483} {:x 725, :y -22.77634652603483} {:x 726, :y -22.77634652603483} {:x 727, :y -22.77634652603483} {:x 728, :y -22.77634652603483} {:x 729, :y -22.77634652603483} {:x 730, :y -22.77634652603483} {:x 731, :y -22.77634652603483} {:x 732, :y -22.77634652603483} {:x 733, :y -22.77634652603483} {:x 734, :y -22.77634652603483} {:x 735, :y -22.77634652603483} {:x 736, :y -22.77634652603483} {:x 737, :y -22.77634652603483} {:x 738, :y -22.77634652603483} {:x 739, :y -22.77634652603483} {:x 740, :y -22.77634652603483} {:x 741, :y -22.77634652603483} {:x 742, :y -22.77634652603483} {:x 743, :y -22.77634652603483} {:x 744, :y -22.77634652603483} {:x 745, :y -22.77634652603483} {:x 746, :y -22.77634652603483} {:x 747, :y -22.776346526034814} {:x 748, :y -22.776346526034814} {:x 749, :y -22.776346526034814} {:x 750, :y -22.77634652603483} {:x 751, :y -22.776346526034814} {:x 752, :y -22.776346526034814} {:x 753, :y -22.776346526034814} {:x 754, :y -22.776346526034814} {:x 755, :y -22.776346526034814} {:x 756, :y -22.776346526034814} {:x 757, :y -22.776346526034814} {:x 758, :y -22.776346526034814} {:x 759, :y -22.776346526034814} {:x 760, :y -22.776346526034814} {:x 761, :y -22.776346526034814} {:x 762, :y -22.776346526034814} {:x 763, :y -22.776346526034814} {:x 764, :y -22.776346526034814} {:x 765, :y -22.776346526034814} {:x 766, :y -22.94067158655214} {:x 767, :y -22.776346526034814} {:x 768, :y -22.776346526034814} {:x 769, :y -22.776346526034814} {:x 770, :y -22.94067158655214} {:x 771, :y -22.776346526034814} {:x 772, :y -22.776346526034814} {:x 773, :y -22.776346526034814} {:x 774, :y -22.776346526034814} {:x 775, :y -22.94067158655214} {:x 776, :y -22.776346526034814} {:x 777, :y -22.77634652603483} {:x 778, :y -22.77634652603483} {:x 779, :y -22.77634652603483} {:x 780, :y -22.776346526034814} {:x 781, :y -22.776346526034814} {:x 782, :y -22.776346526034814} {:x 783, :y -22.94067158655214} {:x 784, :y -22.776346526034814} {:x 785, :y -22.776346526034814} {:x 786, :y -22.77634652603483} {:x 787, :y -22.776346526034814} {:x 788, :y -22.776346526034814} {:x 789, :y -22.776346526034814} {:x 790, :y -22.77634652603483} {:x 791, :y -22.776346526034814} {:x 792, :y -22.776346526034814} {:x 793, :y -22.776346526034814} {:x 794, :y -22.776346526034814} {:x 795, :y -22.77634652603483} {:x 796, :y -22.776346526034814} {:x 797, :y -22.776346526034814} {:x 798, :y -22.776346526034814} {:x 799, :y -22.776346526034814} {:x 800, :y -22.776346526034814} {:x 801, :y -22.776346526034814} {:x 802, :y -22.776346526034814} {:x 803, :y -23.19807879098183} {:x 804, :y -22.776346526034814} {:x 805, :y -22.776346526034814} {:x 806, :y -22.776346526034814} {:x 807, :y -22.776346526034814} {:x 808, :y -22.776346526034814} {:x 809, :y -22.776346526034814} {:x 810, :y -22.776346526034814} {:x 811, :y -22.776346526034814} {:x 812, :y -22.776346526034814} {:x 813, :y -22.776346526034814} {:x 814, :y -22.77634652603483} {:x 815, :y -22.776346526034814} {:x 816, :y -22.776346526034814} {:x 817, :y -22.776346526034814} {:x 818, :y -22.776346526034814} {:x 819, :y -22.776346526034814} {:x 820, :y -22.776346526034814} {:x 821, :y -22.776346526034814} {:x 822, :y -22.94067158655214} {:x 823, :y -22.776346526034814} {:x 824, :y -22.776346526034814} {:x 825, :y -22.776346526034814} {:x 826, :y -22.776346526034814} {:x 827, :y -22.776346526034814} {:x 828, :y -22.776346526034814} {:x 829, :y -22.776346526034814} {:x 830, :y -22.776346526034814} {:x 831, :y -22.776346526034814} {:x 832, :y -22.776346526034814} {:x 833, :y -22.776346526034814} {:x 834, :y -22.776346526034814} {:x 835, :y -22.776346526034814} {:x 836, :y -22.776346526034814} {:x 837, :y -22.776346526034814} {:x 838, :y -22.776346526034814} {:x 839, :y -22.776346526034814} {:x 840, :y -22.776346526034814} {:x 841, :y -22.776346526034814} {:x 842, :y -22.776346526034814} {:x 843, :y -22.776346526034814} {:x 844, :y -22.776346526034814} {:x 845, :y -22.776346526034814} {:x 846, :y -22.776346526034814} {:x 847, :y -22.776346526034814} {:x 848, :y -22.776346526034814} {:x 849, :y -22.776346526034814} {:x 850, :y -22.776346526034814} {:x 851, :y -22.776346526034814} {:x 852, :y -22.776346526034814} {:x 853, :y -22.776346526034814} {:x 854, :y -22.776346526034814} {:x 855, :y -22.77634652603482} {:x 856, :y -22.776346526034814} {:x 857, :y -22.776346526034814} {:x 858, :y -22.776346526034814} {:x 859, :y -22.776346526034814} {:x 860, :y -22.776346526034814} {:x 861, :y -22.776346526034814} {:x 862, :y -22.776346526034814} {:x 863, :y -22.776346526034814} {:x 864, :y -22.776346526034814} {:x 865, :y -22.776346526034814} {:x 866, :y -22.776346526034814} {:x 867, :y -22.77634652603482} {:x 868, :y -22.776346526034814} {:x 869, :y -22.77634652603482} {:x 870, :y -22.77634652603482} {:x 871, :y -22.77634652603482} {:x 872, :y -22.77634652603482} {:x 873, :y -22.776346526034814} {:x 874, :y -22.776346526034814} {:x 875, :y -22.776346526034814} {:x 876, :y -22.776346526034814} {:x 877, :y -22.77634652603482} {:x 878, :y -22.77634652603482} {:x 879, :y -22.776346526034814} {:x 880, :y -22.776346526034814} {:x 881, :y -22.776346526034814} {:x 882, :y -22.776346526034814} {:x 883, :y -22.776346526034814} {:x 884, :y -22.776346526034814} {:x 885, :y -22.776346526034814} {:x 886, :y -22.776346526034814} {:x 887, :y -22.776346526034814} {:x 888, :y -22.776346526034814} {:x 889, :y -22.776346526034814} {:x 890, :y -22.776346526034814} {:x 891, :y -22.776346526034814} {:x 892, :y -22.776346526034814} {:x 893, :y -22.776346526034814} {:x 894, :y -22.776346526034814} {:x 895, :y -22.776346526034814} {:x 896, :y -22.776346526034814} {:x 897, :y -22.776346526034814} {:x 898, :y -22.776346526034814} {:x 899, :y -22.776346526034814} {:x 900, :y -22.776346526034814} {:x 901, :y -22.776346526034814} {:x 902, :y -22.776346526034814} {:x 903, :y -22.776346526034814} {:x 904, :y -22.776346526034814} {:x 905, :y -22.776346526034814} {:x 906, :y -22.77634652603482} {:x 907, :y -22.776346526034814} {:x 908, :y -22.776346526034814} {:x 909, :y -22.776346526034814} {:x 910, :y -22.776346526034814} {:x 911, :y -22.776346526034814} {:x 912, :y -22.776346526034814} {:x 913, :y -22.77634652603482} {:x 914, :y -22.77634652603482} {:x 915, :y -22.77634652603482} {:x 916, :y -22.776346526034814} {:x 917, :y -22.776346526034814} {:x 918, :y -22.776346526034814} {:x 919, :y -22.776346526034814} {:x 920, :y -22.776346526034814} {:x 921, :y -22.776346526034814} {:x 922, :y -22.776346526034814} {:x 923, :y -22.776346526034814} {:x 924, :y -22.776346526034814} {:x 925, :y -22.776346526034814} {:x 926, :y -22.776346526034814} {:x 927, :y -22.776346526034814} {:x 928, :y -22.776346526034814} {:x 929, :y -22.776346526034814} {:x 930, :y -22.776346526034814} {:x 931, :y -22.776346526034814} {:x 932, :y -22.776346526034814} {:x 933, :y -22.776346526034814} {:x 934, :y -22.776346526034814} {:x 935, :y -22.776346526034814} {:x 936, :y -22.776346526034814} {:x 937, :y -22.776346526034814} {:x 938, :y -22.776346526034814} {:x 939, :y -22.77634652603482} {:x 940, :y -22.77634652603482} {:x 941, :y -22.776346526034814} {:x 942, :y -22.776346526034814} {:x 943, :y -22.776346526034814} {:x 944, :y -22.776346526034814} {:x 945, :y -22.776346526034814} {:x 946, :y -22.776346526034814} {:x 947, :y -22.776346526034814} {:x 948, :y -22.776346526034814} {:x 949, :y -22.776346526034814} {:x 950, :y -22.776346526034814} {:x 951, :y -22.776346526034814} {:x 952, :y -22.776346526034814} {:x 953, :y -22.94067158655214} {:x 954, :y -22.77634652603482} {:x 955, :y -22.776346526034814} {:x 956, :y -22.776346526034814} {:x 957, :y -22.776346526034814} {:x 958, :y -22.776346526034814} {:x 959, :y -22.77634652603482} {:x 960, :y -22.776346526034814} {:x 961, :y -22.776346526034814} {:x 962, :y -22.776346526034814} {:x 963, :y -22.776346526034814} {:x 964, :y -22.776346526034814} {:x 965, :y -22.776346526034814} {:x 966, :y -22.776346526034814} {:x 967, :y -22.776346526034814} {:x 968, :y -22.776346526034814} {:x 969, :y -22.776346526034814} {:x 970, :y -22.776346526034814} {:x 971, :y -22.776346526034814} {:x 972, :y -22.776346526034814} {:x 973, :y -22.776346526034814} {:x 974, :y -22.776346526034814} {:x 975, :y -22.776346526034814} {:x 976, :y -22.776346526034814} {:x 977, :y -22.776346526034814} {:x 978, :y -22.77634652603482} {:x 979, :y -22.77634652603482} {:x 980, :y -22.776346526034814} {:x 981, :y -22.776346526034814} {:x 982, :y -22.776346526034814} {:x 983, :y -22.776346526034814} {:x 984, :y -22.77634652603482} {:x 985, :y -22.776346526034814} {:x 986, :y -22.776346526034814} {:x 987, :y -22.776346526034814} {:x 988, :y -22.776346526034814} {:x 989, :y -22.776346526034814} {:x 990, :y -22.776346526034814} {:x 991, :y -22.776346526034814} {:x 992, :y -22.776346526034814} {:x 993, :y -22.776346526034814} {:x 994, :y -22.776346526034814} {:x 995, :y -22.776346526034814} {:x 996, :y -22.776346526034814} {:x 997, :y -22.776346526034814} {:x 998, :y -22.776346526034814} {:x 999, :y -22.776346526034814})}], :width 400, :height 247.2188, :padding {:bottom 20, :top 10, :right 10, :left 50}}}"}
 ;; <=
 
 ;; @@
 ;; scored-generations maps the score-population function over every generation.
-(def scored-generations (doall (map #(score-population % (:score-1a-func config)
-                                                         (:score-1b-func config)
-                                                         (:score-2-func config)) all-individuals)))
+(def scored-generations (doall (map #(score-population % (:score-1-func config) (:score-2-func config)) all-individuals)))
 
 ;; final-generation outputs the scored expressions from the very last iteration.
 (def final-generation (last scored-generations))
@@ -735,75 +432,83 @@
 
 (def pareto-front-gen (map #(merge % {:archived false}) (into () (set (flatten (into-archive should-be-archived is-dominated final-generation final-generation))))))
 
-(def test-archive (flatten (cons pareto-front-individuals unarchived)))
 
 (def pareto-front-individuals (distinct (into () (set (flatten (into-archive should-be-archived is-dominated unarchived pareto-front-gen))))))
+;; @@
+;; =>
+;;; {"type":"html","content":"<span class='clj-var'>#&#x27;user/pareto-front-individuals</span>","value":"#'user/pareto-front-individuals"}
+;; <=
 
+;; @@
+;; Generate a graph showing the individual from the final generation that has the highest score-1 value.
+(compose
+ (list-plot data)
+ (plot (functionalise (:expr (apply max-key :score-1 pareto-front-individuals))) [-10 10]))
+;; @@
+;; =>
+;;; {"type":"vega","content":{"width":400,"height":247.2187957763672,"padding":{"bottom":20,"top":10,"right":10,"left":50},"scales":[{"name":"x","type":"linear","range":"width","zero":false,"domain":{"data":"5d402222-c820-45cc-859f-5b1ad3e90711","field":"data.x"}},{"name":"y","type":"linear","range":"height","nice":true,"zero":false,"domain":{"data":"5d402222-c820-45cc-859f-5b1ad3e90711","field":"data.y"}}],"axes":[{"type":"x","scale":"x"},{"type":"y","scale":"y"}],"data":[{"name":"5d402222-c820-45cc-859f-5b1ad3e90711","values":[{"x":-10,"y":-637},{"x":-9,"y":-432},{"x":-8,"y":-275},{"x":-7,"y":-160},{"x":-6,"y":-81},{"x":-5,"y":-32},{"x":-4,"y":-7},{"x":-3,"y":0},{"x":-2,"y":-5},{"x":-1,"y":-16},{"x":0,"y":-27},{"x":1,"y":-32},{"x":2,"y":-25},{"x":3,"y":0},{"x":4,"y":49},{"x":5,"y":128},{"x":6,"y":243},{"x":7,"y":400},{"x":8,"y":605},{"x":9,"y":864}]},{"name":"b03115bd-dabf-4cca-8e27-9680415ae672","values":[{"x":-10,"y":-640.4547610792579},{"x":-9.799999997019768,"y":-595.1461263097575},{"x":-9.599999994039536,"y":-551.9531169375944},{"x":-9.399999991059303,"y":-510.82773296062317},{"x":-9.199999988079071,"y":-471.721974376698},{"x":-8.999999985098839,"y":-434.5878411836728},{"x":-8.799999982118607,"y":-399.3773333794024},{"x":-8.599999979138374,"y":-366.04245096174054},{"x":-8.399999976158142,"y":-334.5351939285417},{"x":-8.19999997317791,"y":-304.80756227765994},{"x":-7.999999970197678,"y":-276.8115560069496},{"x":-7.799999967217445,"y":-250.49917511426492},{"x":-7.599999964237213,"y":-225.8224195974601},{"x":-7.399999961256981,"y":-202.7332894543894},{"x":-7.199999958276749,"y":-181.183784682907},{"x":-6.999999955296516,"y":-161.12590528086716},{"x":-6.799999952316284,"y":-142.51165124612416},{"x":-6.599999949336052,"y":-125.29302257653215},{"x":-6.39999994635582,"y":-109.42201926994544},{"x":-6.1999999433755875,"y":-94.8506413242182},{"x":-5.999999940395355,"y":-81.53088873720466},{"x":-5.799999937415123,"y":-69.41476150675916},{"x":-5.599999934434891,"y":-58.45425963073582},{"x":-5.3999999314546585,"y":-48.60138310698892},{"x":-5.199999928474426,"y":-39.80813193337264},{"x":-4.999999925494194,"y":-32.02650610774129},{"x":-4.799999922513962,"y":-25.208505627949044},{"x":-4.5999999195337296,"y":-19.306130491850162},{"x":-4.399999916553497,"y":-14.271380697298873},{"x":-4.199999913573265,"y":-10.056256242149402},{"x":-3.999999910593033,"y":-6.612757124256003},{"x":-3.7999999076128006,"y":-3.8928833414728814},{"x":-3.5999999046325684,"y":-1.8486348916542923},{"x":-3.399999901652336,"y":-0.4320117726544481},{"x":-3.199999898672104,"y":0.40498601767240316},{"x":-2.9999998956918716,"y":0.710358481472035},{"x":-2.7999998927116394,"y":0.5321056208902135},{"x":-2.599999889731407,"y":-0.08177256192729487},{"x":-2.399999886751175,"y":-1.083276064834724},{"x":-2.1999998837709427,"y":-2.424404885686302},{"x":-1.9999998807907104,"y":-4.057159022336266},{"x":-1.7999998778104782,"y":-5.933538472638846},{"x":-1.599999874830246,"y":-8.005543234448275},{"x":-1.3999998718500137,"y":-10.22517330561879},{"x":-1.1999998688697815,"y":-12.54442868400462},{"x":-0.9999998658895493,"y":-14.915309367459994},{"x":-0.799999862909317,"y":-17.289815353839153},{"x":-0.5999998599290848,"y":-19.619946640996325},{"x":-0.39999985694885254,"y":-21.85770322678574},{"x":-0.1999998539686203,"y":-23.95508510906164},{"x":1.4901161193847656E-7,"y":-25.864092285678247},{"x":0.20000015199184418,"y":-27.5367247544898},{"x":0.4000001549720764,"y":-28.924982513350532},{"x":0.6000001579523087,"y":-29.980865560114673},{"x":0.8000001609325409,"y":-30.65637389263646},{"x":1.0000001639127731,"y":-30.903507508770115},{"x":1.2000001668930054,"y":-30.67426640636988},{"x":1.4000001698732376,"y":-29.920650583289998},{"x":1.6000001728534698,"y":-28.594660037384685},{"x":1.800000175833702,"y":-26.648294766508172},{"x":2.0000001788139343,"y":-24.0335547685147},{"x":2.2000001817941666,"y":-20.702440041258505},{"x":2.400000184774399,"y":-16.606950582593818},{"x":2.600000187754631,"y":-11.699086390374864},{"x":2.8000001907348633,"y":-5.930847462455878},{"x":3.0000001937150955,"y":0.7457662033089036},{"x":3.2000001966953278,"y":8.378754609065243},{"x":3.40000019967556,"y":17.016117756958923},{"x":3.6000002026557922,"y":26.7058556491357},{"x":3.8000002056360245,"y":37.49596828774134},{"x":4.000000208616257,"y":49.4344556749216},{"x":4.200000211596489,"y":62.56931781282229},{"x":4.400000214576721,"y":76.94855470358912},{"x":4.600000217556953,"y":92.6201663493679},{"x":4.800000220537186,"y":109.63215275230438},{"x":5.000000223517418,"y":128.03251391454432},{"x":5.20000022649765,"y":147.86924983823351},{"x":5.400000229477882,"y":169.19036052551766},{"x":5.600000232458115,"y":192.04384597854263},{"x":5.800000235438347,"y":216.4777061994541},{"x":6.000000238418579,"y":242.53994119039794},{"x":6.200000241398811,"y":270.2785509535198},{"x":6.400000244379044,"y":299.74153549096553},{"x":6.600000247359276,"y":330.9768948048809},{"x":6.800000250339508,"y":364.0326288974115},{"x":7.00000025331974,"y":398.95673777070334},{"x":7.2000002562999725,"y":435.7972214269021},{"x":7.400000259280205,"y":474.6020798681535},{"x":7.600000262260437,"y":515.4193130966033},{"x":7.800000265240669,"y":558.2969211143975},{"x":8.000000268220901,"y":603.2829039236815},{"x":8.200000271201134,"y":650.4252615266013},{"x":8.400000274181366,"y":699.7719939253026},{"x":8.600000277161598,"y":751.3711011219312},{"x":8.80000028014183,"y":805.2705831186329},{"x":9.000000283122063,"y":861.5184399175535},{"x":9.200000286102295,"y":920.1626715208383},{"x":9.400000289082527,"y":981.2512779306337},{"x":9.60000029206276,"y":1044.8322591490853},{"x":9.800000295042992,"y":1110.9536151783386}]}],"marks":[{"type":"symbol","from":{"data":"5d402222-c820-45cc-859f-5b1ad3e90711"},"properties":{"enter":{"x":{"field":"data.x","scale":"x"},"y":{"field":"data.y","scale":"y"},"fill":{"value":"steelblue"},"fillOpacity":{"value":1}},"update":{"shape":"circle","size":{"value":70},"stroke":{"value":"transparent"}},"hover":{"size":{"value":210},"stroke":{"value":"white"}}}},{"type":"line","from":{"data":"b03115bd-dabf-4cca-8e27-9680415ae672"},"properties":{"enter":{"x":{"field":"data.x","scale":"x"},"y":{"field":"data.y","scale":"y"},"stroke":{"value":"#FF29D2"},"strokeWidth":{"value":2},"strokeOpacity":{"value":1}}}}]},"value":"#gorilla_repl.vega.VegaView{:content {:width 400, :height 247.2188, :padding {:bottom 20, :top 10, :right 10, :left 50}, :scales [{:name \"x\", :type \"linear\", :range \"width\", :zero false, :domain {:data \"5d402222-c820-45cc-859f-5b1ad3e90711\", :field \"data.x\"}} {:name \"y\", :type \"linear\", :range \"height\", :nice true, :zero false, :domain {:data \"5d402222-c820-45cc-859f-5b1ad3e90711\", :field \"data.y\"}}], :axes [{:type \"x\", :scale \"x\"} {:type \"y\", :scale \"y\"}], :data ({:name \"5d402222-c820-45cc-859f-5b1ad3e90711\", :values ({:x -10, :y -637} {:x -9, :y -432} {:x -8, :y -275} {:x -7, :y -160} {:x -6, :y -81} {:x -5, :y -32} {:x -4, :y -7} {:x -3, :y 0} {:x -2, :y -5} {:x -1, :y -16} {:x 0, :y -27} {:x 1, :y -32} {:x 2, :y -25} {:x 3, :y 0} {:x 4, :y 49} {:x 5, :y 128} {:x 6, :y 243} {:x 7, :y 400} {:x 8, :y 605} {:x 9, :y 864})} {:name \"b03115bd-dabf-4cca-8e27-9680415ae672\", :values ({:x -10, :y -640.4547610792579} {:x -9.799999997019768, :y -595.1461263097575} {:x -9.599999994039536, :y -551.9531169375944} {:x -9.399999991059303, :y -510.82773296062317} {:x -9.199999988079071, :y -471.721974376698} {:x -8.999999985098839, :y -434.5878411836728} {:x -8.799999982118607, :y -399.3773333794024} {:x -8.599999979138374, :y -366.04245096174054} {:x -8.399999976158142, :y -334.5351939285417} {:x -8.19999997317791, :y -304.80756227765994} {:x -7.999999970197678, :y -276.8115560069496} {:x -7.799999967217445, :y -250.49917511426492} {:x -7.599999964237213, :y -225.8224195974601} {:x -7.399999961256981, :y -202.7332894543894} {:x -7.199999958276749, :y -181.183784682907} {:x -6.999999955296516, :y -161.12590528086716} {:x -6.799999952316284, :y -142.51165124612416} {:x -6.599999949336052, :y -125.29302257653215} {:x -6.39999994635582, :y -109.42201926994544} {:x -6.1999999433755875, :y -94.8506413242182} {:x -5.999999940395355, :y -81.53088873720466} {:x -5.799999937415123, :y -69.41476150675916} {:x -5.599999934434891, :y -58.45425963073582} {:x -5.3999999314546585, :y -48.60138310698892} {:x -5.199999928474426, :y -39.80813193337264} {:x -4.999999925494194, :y -32.02650610774129} {:x -4.799999922513962, :y -25.208505627949044} {:x -4.5999999195337296, :y -19.306130491850162} {:x -4.399999916553497, :y -14.271380697298873} {:x -4.199999913573265, :y -10.056256242149402} {:x -3.999999910593033, :y -6.612757124256003} {:x -3.7999999076128006, :y -3.8928833414728814} {:x -3.5999999046325684, :y -1.8486348916542923} {:x -3.399999901652336, :y -0.4320117726544481} {:x -3.199999898672104, :y 0.40498601767240316} {:x -2.9999998956918716, :y 0.710358481472035} {:x -2.7999998927116394, :y 0.5321056208902135} {:x -2.599999889731407, :y -0.08177256192729487} {:x -2.399999886751175, :y -1.083276064834724} {:x -2.1999998837709427, :y -2.424404885686302} {:x -1.9999998807907104, :y -4.057159022336266} {:x -1.7999998778104782, :y -5.933538472638846} {:x -1.599999874830246, :y -8.005543234448275} {:x -1.3999998718500137, :y -10.22517330561879} {:x -1.1999998688697815, :y -12.54442868400462} {:x -0.9999998658895493, :y -14.915309367459994} {:x -0.799999862909317, :y -17.289815353839153} {:x -0.5999998599290848, :y -19.619946640996325} {:x -0.39999985694885254, :y -21.85770322678574} {:x -0.1999998539686203, :y -23.95508510906164} {:x 1.4901161193847656E-7, :y -25.864092285678247} {:x 0.20000015199184418, :y -27.5367247544898} {:x 0.4000001549720764, :y -28.924982513350532} {:x 0.6000001579523087, :y -29.980865560114673} {:x 0.8000001609325409, :y -30.65637389263646} {:x 1.0000001639127731, :y -30.903507508770115} {:x 1.2000001668930054, :y -30.67426640636988} {:x 1.4000001698732376, :y -29.920650583289998} {:x 1.6000001728534698, :y -28.594660037384685} {:x 1.800000175833702, :y -26.648294766508172} {:x 2.0000001788139343, :y -24.0335547685147} {:x 2.2000001817941666, :y -20.702440041258505} {:x 2.400000184774399, :y -16.606950582593818} {:x 2.600000187754631, :y -11.699086390374864} {:x 2.8000001907348633, :y -5.930847462455878} {:x 3.0000001937150955, :y 0.7457662033089036} {:x 3.2000001966953278, :y 8.378754609065243} {:x 3.40000019967556, :y 17.016117756958923} {:x 3.6000002026557922, :y 26.7058556491357} {:x 3.8000002056360245, :y 37.49596828774134} {:x 4.000000208616257, :y 49.4344556749216} {:x 4.200000211596489, :y 62.56931781282229} {:x 4.400000214576721, :y 76.94855470358912} {:x 4.600000217556953, :y 92.6201663493679} {:x 4.800000220537186, :y 109.63215275230438} {:x 5.000000223517418, :y 128.03251391454432} {:x 5.20000022649765, :y 147.86924983823351} {:x 5.400000229477882, :y 169.19036052551766} {:x 5.600000232458115, :y 192.04384597854263} {:x 5.800000235438347, :y 216.4777061994541} {:x 6.000000238418579, :y 242.53994119039794} {:x 6.200000241398811, :y 270.2785509535198} {:x 6.400000244379044, :y 299.74153549096553} {:x 6.600000247359276, :y 330.9768948048809} {:x 6.800000250339508, :y 364.0326288974115} {:x 7.00000025331974, :y 398.95673777070334} {:x 7.2000002562999725, :y 435.7972214269021} {:x 7.400000259280205, :y 474.6020798681535} {:x 7.600000262260437, :y 515.4193130966033} {:x 7.800000265240669, :y 558.2969211143975} {:x 8.000000268220901, :y 603.2829039236815} {:x 8.200000271201134, :y 650.4252615266013} {:x 8.400000274181366, :y 699.7719939253026} {:x 8.600000277161598, :y 751.3711011219312} {:x 8.80000028014183, :y 805.2705831186329} {:x 9.000000283122063, :y 861.5184399175535} {:x 9.200000286102295, :y 920.1626715208383} {:x 9.400000289082527, :y 981.2512779306337} {:x 9.60000029206276, :y 1044.8322591490853} {:x 9.800000295042992, :y 1110.9536151783386})}), :marks ({:type \"symbol\", :from {:data \"5d402222-c820-45cc-859f-5b1ad3e90711\"}, :properties {:enter {:x {:field \"data.x\", :scale \"x\"}, :y {:field \"data.y\", :scale \"y\"}, :fill {:value \"steelblue\"}, :fillOpacity {:value 1}}, :update {:shape \"circle\", :size {:value 70}, :stroke {:value \"transparent\"}}, :hover {:size {:value 210}, :stroke {:value \"white\"}}}} {:type \"line\", :from {:data \"b03115bd-dabf-4cca-8e27-9680415ae672\"}, :properties {:enter {:x {:field \"data.x\", :scale \"x\"}, :y {:field \"data.y\", :scale \"y\"}, :stroke {:value \"#FF29D2\"}, :strokeWidth {:value 2}, :strokeOpacity {:value 1}}}})}}"}
+;; <=
+
+;; @@
 ;; Apply extract-coords to every individual.
 (def points (map #(extract-coords %) scored-individuals))
+;; @@
+;; =>
+;;; {"type":"html","content":"<span class='clj-var'>#&#x27;user/points</span>","value":"#'user/points"}
+;; <=
 
-;; Generate a set of coordinates for every individual from the final generation that lies on the 3d Pareto front.
+;; @@
+;; Generate a set of coordinates for every individual from the final generation that lies on the Pareto front.
 (def pareto-front-points (distinct (map #(extract-coords %) pareto-front-individuals)))
-
-;; extract individuals from pareto-front-points that belong on the score-1a 2d pareto front.
-(def pareto-front-individuals-1a (distinct (into () (set (flatten (into-archive should-be-archived is-dominated-1a test-archive test-archive))))))
-(def pareto-front-points-1a (distinct (map #(extract-coords %) pareto-front-individuals-1a)))
-
-;;extract individuals from pareto-front-points that belong on the score-1b 2d pareto front.
-(def pareto-front-individuals-1b (distinct (into () (set (flatten (into-archive should-be-archived is-dominated-1b test-archive test-archive))))))
-(def pareto-front-points-1b (distinct (map #(extract-coords %) pareto-front-individuals-1b)))
 ;; @@
 ;; =>
-;;; {"type":"html","content":"<span class='clj-var'>#&#x27;user/pareto-front-points-1b</span>","value":"#'user/pareto-front-points-1b"}
+;;; {"type":"html","content":"<span class='clj-var'>#&#x27;user/pareto-front-points</span>","value":"#'user/pareto-front-points"}
 ;; <=
 
 ;; @@
-;; Generate a graph showing the individual from the final generation that has the highest score-1a value.
-;(compose
- ;(list-plot data)
-; (plot (functionalise-theta (:expr (apply max-key :score-1a pareto-front-individuals))) [0 15]))
-;; @@
-
-;; @@
-(list-plot (map #(drop-last %) pareto-front-points-1a))
+(list-plot pareto-front-points)
 ;; @@
 ;; =>
-;;; {"type":"vega","content":{"axes":[{"type":"x","scale":"x"},{"type":"y","scale":"y"}],"scales":[{"name":"x","type":"linear","range":"width","zero":false,"domain":{"data":"6727128a-bb8d-402b-bc92-636072fbe663","field":"data.x"}},{"name":"y","type":"linear","range":"height","nice":true,"zero":false,"domain":{"data":"6727128a-bb8d-402b-bc92-636072fbe663","field":"data.y"}}],"marks":[{"type":"symbol","from":{"data":"6727128a-bb8d-402b-bc92-636072fbe663"},"properties":{"enter":{"x":{"field":"data.x","scale":"x"},"y":{"field":"data.y","scale":"y"},"fill":{"value":"steelblue"},"fillOpacity":{"value":1}},"update":{"shape":"circle","size":{"value":70},"stroke":{"value":"transparent"}},"hover":{"size":{"value":210},"stroke":{"value":"white"}}}}],"data":[{"name":"6727128a-bb8d-402b-bc92-636072fbe663","values":[{"x":-4,"y":-40.60631820833078},{"x":-11,"y":-0.285235776391346},{"x":-2,"y":-42.75309469457716},{"x":-6,"y":-3.1310110653284937},{"x":-1,"y":-54.07063706219196},{"x":-1,"y":-54.07063706219196},{"x":-22,"y":-0.0011661145479138213},{"x":-7,"y":-2.672181171597913},{"x":-10,"y":-2.3448937778011896}]}],"width":400,"height":247.2187957763672,"padding":{"bottom":20,"top":10,"right":10,"left":50}},"value":"#gorilla_repl.vega.VegaView{:content {:axes [{:type \"x\", :scale \"x\"} {:type \"y\", :scale \"y\"}], :scales [{:name \"x\", :type \"linear\", :range \"width\", :zero false, :domain {:data \"6727128a-bb8d-402b-bc92-636072fbe663\", :field \"data.x\"}} {:name \"y\", :type \"linear\", :range \"height\", :nice true, :zero false, :domain {:data \"6727128a-bb8d-402b-bc92-636072fbe663\", :field \"data.y\"}}], :marks [{:type \"symbol\", :from {:data \"6727128a-bb8d-402b-bc92-636072fbe663\"}, :properties {:enter {:x {:field \"data.x\", :scale \"x\"}, :y {:field \"data.y\", :scale \"y\"}, :fill {:value \"steelblue\"}, :fillOpacity {:value 1}}, :update {:shape \"circle\", :size {:value 70}, :stroke {:value \"transparent\"}}, :hover {:size {:value 210}, :stroke {:value \"white\"}}}}], :data [{:name \"6727128a-bb8d-402b-bc92-636072fbe663\", :values ({:x -4, :y -40.60631820833078} {:x -11, :y -0.285235776391346} {:x -2, :y -42.75309469457716} {:x -6, :y -3.1310110653284937} {:x -1, :y -54.07063706219196} {:x -1, :y -54.07063706219196} {:x -22, :y -0.0011661145479138213} {:x -7, :y -2.672181171597913} {:x -10, :y -2.3448937778011896})}], :width 400, :height 247.2188, :padding {:bottom 20, :top 10, :right 10, :left 50}}}"}
+;;; {"type":"vega","content":{"axes":[{"type":"x","scale":"x"},{"type":"y","scale":"y"}],"scales":[{"name":"x","type":"linear","range":"width","zero":false,"domain":{"data":"7b9ff4aa-12c0-46fd-b303-918699117149","field":"data.x"}},{"name":"y","type":"linear","range":"height","nice":true,"zero":false,"domain":{"data":"7b9ff4aa-12c0-46fd-b303-918699117149","field":"data.y"}}],"marks":[{"type":"symbol","from":{"data":"7b9ff4aa-12c0-46fd-b303-918699117149"},"properties":{"enter":{"x":{"field":"data.x","scale":"x"},"y":{"field":"data.y","scale":"y"},"fill":{"value":"steelblue"},"fillOpacity":{"value":1}},"update":{"shape":"circle","size":{"value":70},"stroke":{"value":"transparent"}},"hover":{"size":{"value":210},"stroke":{"value":"white"}}}}],"data":[{"name":"7b9ff4aa-12c0-46fd-b303-918699117149","values":[{"x":-25,"y":-121.08231240345577},{"x":-39,"y":-22.94067158655214},{"x":-13,"y":-323.84956706021177},{"x":-11,"y":-499.91849027716836},{"x":-9,"y":-923.5148240129403},{"x":-33,"y":-40.963819374681016},{"x":-23,"y":-274.3226932380348},{"x":-5,"y":-1860},{"x":-1,"y":-3936},{"x":-7,"y":-1049.8361590222314},{"x":-29,"y":-62.59402963461341},{"x":-27,"y":-88.74206709993713},{"x":-31,"y":-44.00342134475218},{"x":-41,"y":-22.77634652603482},{"x":-3,"y":-3856},{"x":-37,"y":-40.274696158379435},{"x":-49,"y":-22.776346526034814}]}],"width":400,"height":247.2187957763672,"padding":{"bottom":20,"top":10,"right":10,"left":50}},"value":"#gorilla_repl.vega.VegaView{:content {:axes [{:type \"x\", :scale \"x\"} {:type \"y\", :scale \"y\"}], :scales [{:name \"x\", :type \"linear\", :range \"width\", :zero false, :domain {:data \"7b9ff4aa-12c0-46fd-b303-918699117149\", :field \"data.x\"}} {:name \"y\", :type \"linear\", :range \"height\", :nice true, :zero false, :domain {:data \"7b9ff4aa-12c0-46fd-b303-918699117149\", :field \"data.y\"}}], :marks [{:type \"symbol\", :from {:data \"7b9ff4aa-12c0-46fd-b303-918699117149\"}, :properties {:enter {:x {:field \"data.x\", :scale \"x\"}, :y {:field \"data.y\", :scale \"y\"}, :fill {:value \"steelblue\"}, :fillOpacity {:value 1}}, :update {:shape \"circle\", :size {:value 70}, :stroke {:value \"transparent\"}}, :hover {:size {:value 210}, :stroke {:value \"white\"}}}}], :data [{:name \"7b9ff4aa-12c0-46fd-b303-918699117149\", :values ({:x -25, :y -121.08231240345577} {:x -39, :y -22.94067158655214} {:x -13, :y -323.84956706021177} {:x -11, :y -499.91849027716836} {:x -9, :y -923.5148240129403} {:x -33, :y -40.963819374681016} {:x -23, :y -274.3226932380348} {:x -5, :y -1860} {:x -1, :y -3936} {:x -7, :y -1049.8361590222314} {:x -29, :y -62.59402963461341} {:x -27, :y -88.74206709993713} {:x -31, :y -44.00342134475218} {:x -41, :y -22.77634652603482} {:x -3, :y -3856} {:x -37, :y -40.274696158379435} {:x -49, :y -22.776346526034814})}], :width 400, :height 247.2188, :padding {:bottom 20, :top 10, :right 10, :left 50}}}"}
 ;; <=
 
 ;; @@
-(def sorted-pareto-front-individuals-1a
-(sort-by (juxt :score-2 :score-1a) pareto-front-individuals-1a))    
+(def sorted-pareto-front-individuals
+(sort-by (juxt :score-2 :score-1) pareto-front-individuals))
+(apply max-key :score-1 pareto-front-individuals)
 
-(nth sorted-pareto-front-individuals-1a 1)
+;note need to remove indistinct expressions!!!
+       
 ;; @@
 ;; =>
-;;; {"type":"list-like","open":"<span class='clj-map'>{</span>","close":"<span class='clj-map'>}</span>","separator":", ","items":[{"type":"list-like","open":"","close":"","separator":" ","items":[{"type":"html","content":"<span class='clj-keyword'>:fitness</span>","value":":fitness"},{"type":"html","content":"<span class='clj-long'>0</span>","value":"0"}],"value":"[:fitness 0]"},{"type":"list-like","open":"","close":"","separator":" ","items":[{"type":"html","content":"<span class='clj-keyword'>:dominated</span>","value":":dominated"},{"type":"html","content":"<span class='clj-unkown'>false</span>","value":"false"}],"value":"[:dominated false]"},{"type":"list-like","open":"","close":"","separator":" ","items":[{"type":"html","content":"<span class='clj-keyword'>:score-2</span>","value":":score-2"},{"type":"html","content":"<span class='clj-long'>-11</span>","value":"-11"}],"value":"[:score-2 -11]"},{"type":"list-like","open":"","close":"","separator":" ","items":[{"type":"html","content":"<span class='clj-keyword'>:score-1b</span>","value":":score-1b"},{"type":"html","content":"<span class='clj-double'>-9.144890192372259</span>","value":"-9.144890192372259"}],"value":"[:score-1b -9.144890192372259]"},{"type":"list-like","open":"","close":"","separator":" ","items":[{"type":"html","content":"<span class='clj-keyword'>:score-1a</span>","value":":score-1a"},{"type":"html","content":"<span class='clj-double'>-0.285235776391346</span>","value":"-0.285235776391346"}],"value":"[:score-1a -0.285235776391346]"},{"type":"list-like","open":"","close":"","separator":" ","items":[{"type":"html","content":"<span class='clj-keyword'>:expr</span>","value":":expr"},{"type":"list-like","open":"<span class='clj-list'>(</span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>-</span>","value":"-"},{"type":"list-like","open":"<span class='clj-list'>(</span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>-</span>","value":"-"},{"type":"html","content":"<span class='clj-long'>1</span>","value":"1"},{"type":"list-like","open":"<span class='clj-list'>(</span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>*</span>","value":"*"},{"type":"html","content":"<span class='clj-double'>0.5</span>","value":"0.5"},{"type":"list-like","open":"<span class='clj-list'>(</span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>*</span>","value":"*"},{"type":"html","content":"<span class='clj-symbol'>theta-dot</span>","value":"theta-dot"},{"type":"html","content":"<span class='clj-symbol'>theta-dot</span>","value":"theta-dot"}],"value":"(* theta-dot theta-dot)"}],"value":"(* 0.5 (* theta-dot theta-dot))"}],"value":"(- 1 (* 0.5 (* theta-dot theta-dot)))"},{"type":"list-like","open":"<span class='clj-list'>(</span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>*</span>","value":"*"},{"type":"html","content":"<span class='clj-symbol'>theta</span>","value":"theta"},{"type":"html","content":"<span class='clj-symbol'>theta</span>","value":"theta"}],"value":"(* theta theta)"}],"value":"(- (- 1 (* 0.5 (* theta-dot theta-dot))) (* theta theta))"}],"value":"[:expr (- (- 1 (* 0.5 (* theta-dot theta-dot))) (* theta theta))]"},{"type":"list-like","open":"","close":"","separator":" ","items":[{"type":"html","content":"<span class='clj-keyword'>:archived</span>","value":":archived"},{"type":"html","content":"<span class='clj-unkown'>false</span>","value":"false"}],"value":"[:archived false]"}],"value":"{:fitness 0, :dominated false, :score-2 -11, :score-1b -9.144890192372259, :score-1a -0.285235776391346, :expr (- (- 1 (* 0.5 (* theta-dot theta-dot))) (* theta theta)), :archived false}"}
+;;; {"type":"list-like","open":"<span class='clj-map'>{<span>","close":"<span class='clj-map'>}</span>","separator":", ","items":[{"type":"list-like","open":"","close":"","separator":" ","items":[{"type":"html","content":"<span class='clj-keyword'>:fitness</span>","value":":fitness"},{"type":"html","content":"<span class='clj-long'>0</span>","value":"0"}],"value":"[:fitness 0]"},{"type":"list-like","open":"","close":"","separator":" ","items":[{"type":"html","content":"<span class='clj-keyword'>:dominated</span>","value":":dominated"},{"type":"html","content":"<span class='clj-unkown'>false</span>","value":"false"}],"value":"[:dominated false]"},{"type":"list-like","open":"","close":"","separator":" ","items":[{"type":"html","content":"<span class='clj-keyword'>:score-2</span>","value":":score-2"},{"type":"html","content":"<span class='clj-long'>-49</span>","value":"-49"}],"value":"[:score-2 -49]"},{"type":"list-like","open":"","close":"","separator":" ","items":[{"type":"html","content":"<span class='clj-keyword'>:score-1</span>","value":":score-1"},{"type":"html","content":"<span class='clj-double'>-22.776346526034814</span>","value":"-22.776346526034814"}],"value":"[:score-1 -22.776346526034814]"},{"type":"list-like","open":"","close":"","separator":" ","items":[{"type":"html","content":"<span class='clj-keyword'>:expr</span>","value":":expr"},{"type":"list-like","open":"<span class='clj-list'>(<span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>+</span>","value":"+"},{"type":"list-like","open":"<span class='clj-list'>(<span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>+</span>","value":"+"},{"type":"list-like","open":"<span class='clj-list'>(<span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>*</span>","value":"*"},{"type":"list-like","open":"<span class='clj-list'>(<span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>*</span>","value":"*"},{"type":"html","content":"<span class='clj-symbol'>x</span>","value":"x"},{"type":"html","content":"<span class='clj-double'>1.8810386035642426</span>","value":"1.8810386035642426"}],"value":"(* x 1.8810386035642426)"},{"type":"html","content":"<span class='clj-symbol'>x</span>","value":"x"}],"value":"(* (* x 1.8810386035642426) x)"},{"type":"list-like","open":"<span class='clj-list'>(<span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>+</span>","value":"+"},{"type":"list-like","open":"<span class='clj-list'>(<span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>*</span>","value":"*"},{"type":"list-like","open":"<span class='clj-list'>(<span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>+</span>","value":"+"},{"type":"html","content":"<span class='clj-symbol'>x</span>","value":"x"},{"type":"html","content":"<span class='clj-double'>1.0736447089076737</span>","value":"1.0736447089076737"}],"value":"(+ x 1.0736447089076737)"},{"type":"list-like","open":"<span class='clj-list'>(<span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>*</span>","value":"*"},{"type":"html","content":"<span class='clj-symbol'>x</span>","value":"x"},{"type":"html","content":"<span class='clj-symbol'>x</span>","value":"x"}],"value":"(* x x)"}],"value":"(* (+ x 1.0736447089076737) (* x x))"},{"type":"list-like","open":"<span class='clj-list'>(<span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>-</span>","value":"-"},{"type":"list-like","open":"<span class='clj-list'>(<span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>*</span>","value":"*"},{"type":"list-like","open":"<span class='clj-list'>(<span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>-</span>","value":"-"},{"type":"list-like","open":"<span class='clj-list'>(<span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>-</span>","value":"-"},{"type":"html","content":"<span class='clj-symbol'>x</span>","value":"x"},{"type":"html","content":"<span class='clj-double'>1.9351537886418753</span>","value":"1.9351537886418753"}],"value":"(- x 1.9351537886418753)"},{"type":"list-like","open":"<span class='clj-list'>(<span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>+</span>","value":"+"},{"type":"html","content":"<span class='clj-double'>1.4882514334006216</span>","value":"1.4882514334006216"},{"type":"list-like","open":"<span class='clj-list'>(<span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>+</span>","value":"+"},{"type":"html","content":"<span class='clj-symbol'>x</span>","value":"x"},{"type":"html","content":"<span class='clj-double'>1.0736447089076737</span>","value":"1.0736447089076737"}],"value":"(+ x 1.0736447089076737)"}],"value":"(+ 1.4882514334006216 (+ x 1.0736447089076737))"}],"value":"(- (- x 1.9351537886418753) (+ 1.4882514334006216 (+ x 1.0736447089076737)))"},{"type":"list-like","open":"<span class='clj-list'>(<span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>-</span>","value":"-"},{"type":"html","content":"<span class='clj-symbol'>x</span>","value":"x"},{"type":"list-like","open":"<span class='clj-list'>(<span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>-</span>","value":"-"},{"type":"list-like","open":"<span class='clj-list'>(<span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>-</span>","value":"-"},{"type":"list-like","open":"<span class='clj-list'>(<span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>-</span>","value":"-"},{"type":"list-like","open":"<span class='clj-list'>(<span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>-</span>","value":"-"},{"type":"html","content":"<span class='clj-symbol'>x</span>","value":"x"},{"type":"list-like","open":"<span class='clj-list'>(<span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>-</span>","value":"-"},{"type":"list-like","open":"<span class='clj-list'>(<span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>-</span>","value":"-"},{"type":"html","content":"<span class='clj-symbol'>x</span>","value":"x"},{"type":"html","content":"<span class='clj-double'>1.9351537886418753</span>","value":"1.9351537886418753"}],"value":"(- x 1.9351537886418753)"},{"type":"html","content":"<span class='clj-symbol'>x</span>","value":"x"}],"value":"(- (- x 1.9351537886418753) x)"}],"value":"(- x (- (- x 1.9351537886418753) x))"},{"type":"html","content":"<span class='clj-symbol'>x</span>","value":"x"}],"value":"(- (- x (- (- x 1.9351537886418753) x)) x)"},{"type":"html","content":"<span class='clj-double'>1.9351537886418753</span>","value":"1.9351537886418753"}],"value":"(- (- (- x (- (- x 1.9351537886418753) x)) x) 1.9351537886418753)"},{"type":"list-like","open":"<span class='clj-list'>(<span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>+</span>","value":"+"},{"type":"html","content":"<span class='clj-double'>1.8810386035642426</span>","value":"1.8810386035642426"},{"type":"list-like","open":"<span class='clj-list'>(<span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>+</span>","value":"+"},{"type":"list-like","open":"<span class='clj-list'>(<span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>+</span>","value":"+"},{"type":"html","content":"<span class='clj-double'>1.9351537886418753</span>","value":"1.9351537886418753"},{"type":"html","content":"<span class='clj-symbol'>x</span>","value":"x"}],"value":"(+ 1.9351537886418753 x)"},{"type":"html","content":"<span class='clj-double'>1.9351537886418753</span>","value":"1.9351537886418753"}],"value":"(+ (+ 1.9351537886418753 x) 1.9351537886418753)"}],"value":"(+ 1.8810386035642426 (+ (+ 1.9351537886418753 x) 1.9351537886418753))"}],"value":"(- (- (- (- x (- (- x 1.9351537886418753) x)) x) 1.9351537886418753) (+ 1.8810386035642426 (+ (+ 1.9351537886418753 x) 1.9351537886418753)))"}],"value":"(- x (- (- (- (- x (- (- x 1.9351537886418753) x)) x) 1.9351537886418753) (+ 1.8810386035642426 (+ (+ 1.9351537886418753 x) 1.9351537886418753))))"}],"value":"(* (- (- x 1.9351537886418753) (+ 1.4882514334006216 (+ x 1.0736447089076737))) (- x (- (- (- (- x (- (- x 1.9351537886418753) x)) x) 1.9351537886418753) (+ 1.8810386035642426 (+ (+ 1.9351537886418753 x) 1.9351537886418753)))))"},{"type":"html","content":"<span class='clj-symbol'>x</span>","value":"x"}],"value":"(- (* (- (- x 1.9351537886418753) (+ 1.4882514334006216 (+ x 1.0736447089076737))) (- x (- (- (- (- x (- (- x 1.9351537886418753) x)) x) 1.9351537886418753) (+ 1.8810386035642426 (+ (+ 1.9351537886418753 x) 1.9351537886418753))))) x)"}],"value":"(+ (* (+ x 1.0736447089076737) (* x x)) (- (* (- (- x 1.9351537886418753) (+ 1.4882514334006216 (+ x 1.0736447089076737))) (- x (- (- (- (- x (- (- x 1.9351537886418753) x)) x) 1.9351537886418753) (+ 1.8810386035642426 (+ (+ 1.9351537886418753 x) 1.9351537886418753))))) x))"}],"value":"(+ (* (* x 1.8810386035642426) x) (+ (* (+ x 1.0736447089076737) (* x x)) (- (* (- (- x 1.9351537886418753) (+ 1.4882514334006216 (+ x 1.0736447089076737))) (- x (- (- (- (- x (- (- x 1.9351537886418753) x)) x) 1.9351537886418753) (+ 1.8810386035642426 (+ (+ 1.9351537886418753 x) 1.9351537886418753))))) x)))"},{"type":"html","content":"<span class='clj-symbol'>x</span>","value":"x"}],"value":"(+ (+ (* (* x 1.8810386035642426) x) (+ (* (+ x 1.0736447089076737) (* x x)) (- (* (- (- x 1.9351537886418753) (+ 1.4882514334006216 (+ x 1.0736447089076737))) (- x (- (- (- (- x (- (- x 1.9351537886418753) x)) x) 1.9351537886418753) (+ 1.8810386035642426 (+ (+ 1.9351537886418753 x) 1.9351537886418753))))) x))) x)"}],"value":"[:expr (+ (+ (* (* x 1.8810386035642426) x) (+ (* (+ x 1.0736447089076737) (* x x)) (- (* (- (- x 1.9351537886418753) (+ 1.4882514334006216 (+ x 1.0736447089076737))) (- x (- (- (- (- x (- (- x 1.9351537886418753) x)) x) 1.9351537886418753) (+ 1.8810386035642426 (+ (+ 1.9351537886418753 x) 1.9351537886418753))))) x))) x)]"},{"type":"list-like","open":"","close":"","separator":" ","items":[{"type":"html","content":"<span class='clj-keyword'>:archived</span>","value":":archived"},{"type":"html","content":"<span class='clj-unkown'>false</span>","value":"false"}],"value":"[:archived false]"}],"value":"{:fitness 0, :dominated false, :score-2 -49, :score-1 -22.776346526034814, :expr (+ (+ (* (* x 1.8810386035642426) x) (+ (* (+ x 1.0736447089076737) (* x x)) (- (* (- (- x 1.9351537886418753) (+ 1.4882514334006216 (+ x 1.0736447089076737))) (- x (- (- (- (- x (- (- x 1.9351537886418753) x)) x) 1.9351537886418753) (+ 1.8810386035642426 (+ (+ 1.9351537886418753 x) 1.9351537886418753))))) x))) x), :archived false}"}
 ;; <=
 
 ;; @@
-(list-plot (map #(list (first %) (last %)) pareto-front-points-1b))
+(plot (functionalise (:expr (nth  sorted-pareto-front-individuals 11))) [-5 7])
 ;; @@
 ;; =>
-;;; {"type":"vega","content":{"axes":[{"type":"x","scale":"x"},{"type":"y","scale":"y"}],"scales":[{"name":"x","type":"linear","range":"width","zero":false,"domain":{"data":"16b45448-2509-4c31-a41f-929ec16259ca","field":"data.x"}},{"name":"y","type":"linear","range":"height","nice":true,"zero":false,"domain":{"data":"16b45448-2509-4c31-a41f-929ec16259ca","field":"data.y"}}],"marks":[{"type":"symbol","from":{"data":"16b45448-2509-4c31-a41f-929ec16259ca"},"properties":{"enter":{"x":{"field":"data.x","scale":"x"},"y":{"field":"data.y","scale":"y"},"fill":{"value":"steelblue"},"fillOpacity":{"value":1}},"update":{"shape":"circle","size":{"value":70},"stroke":{"value":"transparent"}},"hover":{"size":{"value":210},"stroke":{"value":"white"}}}}],"data":[{"name":"16b45448-2509-4c31-a41f-929ec16259ca","values":[{"x":-4,"y":-88.9182835817337},{"x":-17,"y":-2.5989988883957267},{"x":-6,"y":-10.304004239849746},{"x":-1,"y":-181.32120168209076},{"x":-9,"y":-8.532985270954669},{"x":-11,"y":-5.859017327427864},{"x":-22,"y":-2.0430930952859967},{"x":-7,"y":-9.019949338398874}]}],"width":400,"height":247.2187957763672,"padding":{"bottom":20,"top":10,"right":10,"left":50}},"value":"#gorilla_repl.vega.VegaView{:content {:axes [{:type \"x\", :scale \"x\"} {:type \"y\", :scale \"y\"}], :scales [{:name \"x\", :type \"linear\", :range \"width\", :zero false, :domain {:data \"16b45448-2509-4c31-a41f-929ec16259ca\", :field \"data.x\"}} {:name \"y\", :type \"linear\", :range \"height\", :nice true, :zero false, :domain {:data \"16b45448-2509-4c31-a41f-929ec16259ca\", :field \"data.y\"}}], :marks [{:type \"symbol\", :from {:data \"16b45448-2509-4c31-a41f-929ec16259ca\"}, :properties {:enter {:x {:field \"data.x\", :scale \"x\"}, :y {:field \"data.y\", :scale \"y\"}, :fill {:value \"steelblue\"}, :fillOpacity {:value 1}}, :update {:shape \"circle\", :size {:value 70}, :stroke {:value \"transparent\"}}, :hover {:size {:value 210}, :stroke {:value \"white\"}}}}], :data [{:name \"16b45448-2509-4c31-a41f-929ec16259ca\", :values ({:x -4, :y -88.9182835817337} {:x -17, :y -2.5989988883957267} {:x -6, :y -10.304004239849746} {:x -1, :y -181.32120168209076} {:x -9, :y -8.532985270954669} {:x -11, :y -5.859017327427864} {:x -22, :y -2.0430930952859967} {:x -7, :y -9.019949338398874})}], :width 400, :height 247.2188, :padding {:bottom 20, :top 10, :right 10, :left 50}}}"}
+;;; {"type":"vega","content":{"axes":[{"type":"x","scale":"x"},{"type":"y","scale":"y"}],"scales":[{"name":"x","type":"linear","range":"width","zero":false,"domain":{"data":"2b1ffa76-ea6b-41fb-a2b0-842f7c7bac3f","field":"data.x"}},{"name":"y","type":"linear","range":"height","nice":true,"zero":false,"domain":{"data":"2b1ffa76-ea6b-41fb-a2b0-842f7c7bac3f","field":"data.y"}}],"marks":[{"type":"line","from":{"data":"2b1ffa76-ea6b-41fb-a2b0-842f7c7bac3f"},"properties":{"enter":{"x":{"field":"data.x","scale":"x"},"y":{"field":"data.y","scale":"y"},"stroke":{"value":"#FF29D2"},"strokeWidth":{"value":2},"strokeOpacity":{"value":1}}}}],"data":[{"name":"2b1ffa76-ea6b-41fb-a2b0-842f7c7bac3f","values":[{"x":-5,"y":-36.64864240495264},{"x":-4.880000002682209,"y":-31.378279178909512},{"x":-4.760000005364418,"y":-26.460944720372673},{"x":-4.640000008046627,"y":-21.886271030037356},{"x":-4.520000010728836,"y":-17.64389010859879},{"x":-4.400000013411045,"y":-13.7234339567522},{"x":-4.280000016093254,"y":-10.114534575192817},{"x":-4.160000018775463,"y":-6.8068239646158695},{"x":-4.040000021457672,"y":-3.789934125716586},{"x":-3.920000024139881,"y":-1.0534970591901907},{"x":-3.80000002682209,"y":1.412855234268079},{"x":-3.680000029504299,"y":3.619490753962999},{"x":-3.560000032186508,"y":5.576777499199341},{"x":-3.440000034868717,"y":7.295083469281877},{"x":-3.320000037550926,"y":8.784776663515377},{"x":-3.2000000402331352,"y":10.056225081204612},{"x":-3.0800000429153442,"y":11.119796721654357},{"x":-2.9600000455975533,"y":11.985859584169381},{"x":-2.8400000482797623,"y":12.664781668054452},{"x":-2.7200000509619713,"y":13.166930972614349},{"x":-2.6000000536441803,"y":13.502675497153836},{"x":-2.4800000563263893,"y":13.682383240977689},{"x":-2.3600000590085983,"y":13.716422203390678},{"x":-2.2400000616908073,"y":13.615160383697576},{"x":-2.1200000643730164,"y":13.388965781203153},{"x":-2.0000000670552254,"y":13.04820639521218},{"x":-1.8800000697374344,"y":12.603250225029429},{"x":-1.7600000724196434,"y":12.06446526995967},{"x":-1.6400000751018524,"y":11.44221952930768},{"x":-1.5200000777840614,"y":10.746881002378224},{"x":-1.4000000804662704,"y":9.988817688476075},{"x":-1.2800000831484795,"y":9.178397586906005},{"x":-1.1600000858306885,"y":8.325988696972788},{"x":-1.0400000885128975,"y":7.441959017981191},{"x":-0.9200000911951065,"y":6.536676549235989},{"x":-0.8000000938773155,"y":5.620509290041951},{"x":-0.6800000965595245,"y":4.70382523970385},{"x":-0.5600000992417336,"y":3.796992397526456},{"x":-0.44000010192394257,"y":2.910378762814542},{"x":-0.3200001046061516,"y":2.0543523348728785},{"x":-0.2000001072883606,"y":1.2392811130062373},{"x":-0.08000010997056961,"y":0.4755330965193898},{"x":0.039999887347221375,"y":-0.22652371528289278},{"x":0.15999988466501236,"y":-0.8565213230958388},{"x":0.27999988198280334,"y":-1.404091727614677},{"x":0.39999987930059433,"y":-1.8588669295346358},{"x":0.5199998766183853,"y":-2.210478929550944},{"x":0.6399998739361763,"y":-2.4485597283588296},{"x":0.7599998712539673,"y":-2.5627413266535215},{"x":0.8799998685717583,"y":-2.5426557251302486},{"x":0.9999998658895493,"y":-2.3779349244842387},{"x":1.1199998632073402,"y":-2.0582109254107213},{"x":1.2399998605251312,"y":-1.5731157286049244},{"x":1.3599998578429222,"y":-0.9122813347620766},{"x":1.4799998551607132,"y":-0.06533974457740645},{"x":1.5999998524785042,"y":0.9780770412538574},{"x":1.7199998497962952,"y":2.2283370220364866},{"x":1.8399998471140862,"y":3.695808197075252},{"x":1.9599998444318771,"y":5.390858565674926},{"x":2.079999841749668,"y":7.323856127140279},{"x":2.199999839067459,"y":9.505168880776084},{"x":2.31999983638525,"y":11.94516482588711},{"x":2.439999833703041,"y":14.654211961778131},{"x":2.559999831020832,"y":17.642678287753917},{"x":2.679999828338623,"y":20.920931803119238},{"x":2.799999825656414,"y":24.499340507178868},{"x":2.919999822974205,"y":28.388272399237582},{"x":3.039999820291996,"y":32.598095478600136},{"x":3.159999817609787,"y":37.13917774457132},{"x":3.279999814927578,"y":42.0218871964559},{"x":3.399999812245369,"y":47.256591833558645},{"x":3.51999980956316,"y":52.85365965518432},{"x":3.639999806880951,"y":58.823458660637705},{"x":3.759999804198742,"y":65.17635684922357},{"x":3.879999801516533,"y":71.92272222024668},{"x":3.999999798834324,"y":79.07292277301184},{"x":4.119999796152115,"y":86.63732650682378},{"x":4.239999793469906,"y":94.62630142098728},{"x":4.359999790787697,"y":103.0502155148071},{"x":4.479999788105488,"y":111.91943678758805},{"x":4.599999785423279,"y":121.24433323863487},{"x":4.71999978274107,"y":131.03527286725236},{"x":4.839999780058861,"y":141.30262367274526},{"x":4.959999777376652,"y":152.05675365441834},{"x":5.079999774694443,"y":163.3080308115764},{"x":5.199999772012234,"y":175.0668231435242},{"x":5.319999769330025,"y":187.3434986495665},{"x":5.439999766647816,"y":200.14842532900812},{"x":5.559999763965607,"y":213.4919711811537},{"x":5.679999761283398,"y":227.38450420530816},{"x":5.799999758601189,"y":241.8363924007762},{"x":5.91999975591898,"y":256.8580037668626},{"x":6.039999753236771,"y":272.4597063028722},{"x":6.159999750554562,"y":288.65186800810966},{"x":6.279999747872353,"y":305.44485688187973},{"x":6.399999745190144,"y":322.84904092348734},{"x":6.519999742507935,"y":340.8747881322372},{"x":6.6399997398257256,"y":359.53246650743404},{"x":6.7599997371435165,"y":378.83244404838257},{"x":6.8799997344613075,"y":398.7850887543877},{"x":6.9999997317790985,"y":419.4007686247541}]}],"width":400,"height":247.2187957763672,"padding":{"bottom":20,"top":10,"right":10,"left":50}},"value":"#gorilla_repl.vega.VegaView{:content {:axes [{:type \"x\", :scale \"x\"} {:type \"y\", :scale \"y\"}], :scales [{:name \"x\", :type \"linear\", :range \"width\", :zero false, :domain {:data \"2b1ffa76-ea6b-41fb-a2b0-842f7c7bac3f\", :field \"data.x\"}} {:name \"y\", :type \"linear\", :range \"height\", :nice true, :zero false, :domain {:data \"2b1ffa76-ea6b-41fb-a2b0-842f7c7bac3f\", :field \"data.y\"}}], :marks [{:type \"line\", :from {:data \"2b1ffa76-ea6b-41fb-a2b0-842f7c7bac3f\"}, :properties {:enter {:x {:field \"data.x\", :scale \"x\"}, :y {:field \"data.y\", :scale \"y\"}, :stroke {:value \"#FF29D2\"}, :strokeWidth {:value 2}, :strokeOpacity {:value 1}}}}], :data [{:name \"2b1ffa76-ea6b-41fb-a2b0-842f7c7bac3f\", :values ({:x -5, :y -36.64864240495264} {:x -4.880000002682209, :y -31.378279178909512} {:x -4.760000005364418, :y -26.460944720372673} {:x -4.640000008046627, :y -21.886271030037356} {:x -4.520000010728836, :y -17.64389010859879} {:x -4.400000013411045, :y -13.7234339567522} {:x -4.280000016093254, :y -10.114534575192817} {:x -4.160000018775463, :y -6.8068239646158695} {:x -4.040000021457672, :y -3.789934125716586} {:x -3.920000024139881, :y -1.0534970591901907} {:x -3.80000002682209, :y 1.412855234268079} {:x -3.680000029504299, :y 3.619490753962999} {:x -3.560000032186508, :y 5.576777499199341} {:x -3.440000034868717, :y 7.295083469281877} {:x -3.320000037550926, :y 8.784776663515377} {:x -3.2000000402331352, :y 10.056225081204612} {:x -3.0800000429153442, :y 11.119796721654357} {:x -2.9600000455975533, :y 11.985859584169381} {:x -2.8400000482797623, :y 12.664781668054452} {:x -2.7200000509619713, :y 13.166930972614349} {:x -2.6000000536441803, :y 13.502675497153836} {:x -2.4800000563263893, :y 13.682383240977689} {:x -2.3600000590085983, :y 13.716422203390678} {:x -2.2400000616908073, :y 13.615160383697576} {:x -2.1200000643730164, :y 13.388965781203153} {:x -2.0000000670552254, :y 13.04820639521218} {:x -1.8800000697374344, :y 12.603250225029429} {:x -1.7600000724196434, :y 12.06446526995967} {:x -1.6400000751018524, :y 11.44221952930768} {:x -1.5200000777840614, :y 10.746881002378224} {:x -1.4000000804662704, :y 9.988817688476075} {:x -1.2800000831484795, :y 9.178397586906005} {:x -1.1600000858306885, :y 8.325988696972788} {:x -1.0400000885128975, :y 7.441959017981191} {:x -0.9200000911951065, :y 6.536676549235989} {:x -0.8000000938773155, :y 5.620509290041951} {:x -0.6800000965595245, :y 4.70382523970385} {:x -0.5600000992417336, :y 3.796992397526456} {:x -0.44000010192394257, :y 2.910378762814542} {:x -0.3200001046061516, :y 2.0543523348728785} {:x -0.2000001072883606, :y 1.2392811130062373} {:x -0.08000010997056961, :y 0.4755330965193898} {:x 0.039999887347221375, :y -0.22652371528289278} {:x 0.15999988466501236, :y -0.8565213230958388} {:x 0.27999988198280334, :y -1.404091727614677} {:x 0.39999987930059433, :y -1.8588669295346358} {:x 0.5199998766183853, :y -2.210478929550944} {:x 0.6399998739361763, :y -2.4485597283588296} {:x 0.7599998712539673, :y -2.5627413266535215} {:x 0.8799998685717583, :y -2.5426557251302486} {:x 0.9999998658895493, :y -2.3779349244842387} {:x 1.1199998632073402, :y -2.0582109254107213} {:x 1.2399998605251312, :y -1.5731157286049244} {:x 1.3599998578429222, :y -0.9122813347620766} {:x 1.4799998551607132, :y -0.06533974457740645} {:x 1.5999998524785042, :y 0.9780770412538574} {:x 1.7199998497962952, :y 2.2283370220364866} {:x 1.8399998471140862, :y 3.695808197075252} {:x 1.9599998444318771, :y 5.390858565674926} {:x 2.079999841749668, :y 7.323856127140279} {:x 2.199999839067459, :y 9.505168880776084} {:x 2.31999983638525, :y 11.94516482588711} {:x 2.439999833703041, :y 14.654211961778131} {:x 2.559999831020832, :y 17.642678287753917} {:x 2.679999828338623, :y 20.920931803119238} {:x 2.799999825656414, :y 24.499340507178868} {:x 2.919999822974205, :y 28.388272399237582} {:x 3.039999820291996, :y 32.598095478600136} {:x 3.159999817609787, :y 37.13917774457132} {:x 3.279999814927578, :y 42.0218871964559} {:x 3.399999812245369, :y 47.256591833558645} {:x 3.51999980956316, :y 52.85365965518432} {:x 3.639999806880951, :y 58.823458660637705} {:x 3.759999804198742, :y 65.17635684922357} {:x 3.879999801516533, :y 71.92272222024668} {:x 3.999999798834324, :y 79.07292277301184} {:x 4.119999796152115, :y 86.63732650682378} {:x 4.239999793469906, :y 94.62630142098728} {:x 4.359999790787697, :y 103.0502155148071} {:x 4.479999788105488, :y 111.91943678758805} {:x 4.599999785423279, :y 121.24433323863487} {:x 4.71999978274107, :y 131.03527286725236} {:x 4.839999780058861, :y 141.30262367274526} {:x 4.959999777376652, :y 152.05675365441834} {:x 5.079999774694443, :y 163.3080308115764} {:x 5.199999772012234, :y 175.0668231435242} {:x 5.319999769330025, :y 187.3434986495665} {:x 5.439999766647816, :y 200.14842532900812} {:x 5.559999763965607, :y 213.4919711811537} {:x 5.679999761283398, :y 227.38450420530816} {:x 5.799999758601189, :y 241.8363924007762} {:x 5.91999975591898, :y 256.8580037668626} {:x 6.039999753236771, :y 272.4597063028722} {:x 6.159999750554562, :y 288.65186800810966} {:x 6.279999747872353, :y 305.44485688187973} {:x 6.399999745190144, :y 322.84904092348734} {:x 6.519999742507935, :y 340.8747881322372} {:x 6.6399997398257256, :y 359.53246650743404} {:x 6.7599997371435165, :y 378.83244404838257} {:x 6.8799997344613075, :y 398.7850887543877} {:x 6.9999997317790985, :y 419.4007686247541})}], :width 400, :height 247.2188, :padding {:bottom 20, :top 10, :right 10, :left 50}}}"}
 ;; <=
 
 ;; @@
-(def sorted-pareto-front-individuals-1b
-(sort-by (juxt :score-2 :score-1a) pareto-front-individuals-1b))
-
-(nth sorted-pareto-front-individuals-1b 1)
+pareto-front-points
 ;; @@
 ;; =>
-;;; {"type":"list-like","open":"<span class='clj-map'>{</span>","close":"<span class='clj-map'>}</span>","separator":", ","items":[{"type":"list-like","open":"","close":"","separator":" ","items":[{"type":"html","content":"<span class='clj-keyword'>:fitness</span>","value":":fitness"},{"type":"html","content":"<span class='clj-long'>0</span>","value":"0"}],"value":"[:fitness 0]"},{"type":"list-like","open":"","close":"","separator":" ","items":[{"type":"html","content":"<span class='clj-keyword'>:dominated</span>","value":":dominated"},{"type":"html","content":"<span class='clj-unkown'>false</span>","value":"false"}],"value":"[:dominated false]"},{"type":"list-like","open":"","close":"","separator":" ","items":[{"type":"html","content":"<span class='clj-keyword'>:score-2</span>","value":":score-2"},{"type":"html","content":"<span class='clj-long'>-17</span>","value":"-17"}],"value":"[:score-2 -17]"},{"type":"list-like","open":"","close":"","separator":" ","items":[{"type":"html","content":"<span class='clj-keyword'>:score-1b</span>","value":":score-1b"},{"type":"html","content":"<span class='clj-double'>-2.5989988883957267</span>","value":"-2.5989988883957267"}],"value":"[:score-1b -2.5989988883957267]"},{"type":"list-like","open":"","close":"","separator":" ","items":[{"type":"html","content":"<span class='clj-keyword'>:score-1a</span>","value":":score-1a"},{"type":"html","content":"<span class='clj-double'>-1.4298429494649554</span>","value":"-1.4298429494649554"}],"value":"[:score-1a -1.4298429494649554]"},{"type":"list-like","open":"","close":"","separator":" ","items":[{"type":"html","content":"<span class='clj-keyword'>:expr</span>","value":":expr"},{"type":"list-like","open":"<span class='clj-list'>(</span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>-</span>","value":"-"},{"type":"list-like","open":"<span class='clj-list'>(</span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>-</span>","value":"-"},{"type":"list-like","open":"<span class='clj-list'>(</span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>-</span>","value":"-"},{"type":"list-like","open":"<span class='clj-list'>(</span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>Math/cos</span>","value":"Math/cos"},{"type":"html","content":"<span class='clj-symbol'>theta-dot</span>","value":"theta-dot"}],"value":"(Math/cos theta-dot)"},{"type":"list-like","open":"<span class='clj-list'>(</span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>*</span>","value":"*"},{"type":"html","content":"<span class='clj-symbol'>theta</span>","value":"theta"},{"type":"html","content":"<span class='clj-symbol'>theta</span>","value":"theta"}],"value":"(* theta theta)"}],"value":"(- (Math/cos theta-dot) (* theta theta))"},{"type":"list-like","open":"<span class='clj-list'>(</span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>*</span>","value":"*"},{"type":"html","content":"<span class='clj-double'>0.5</span>","value":"0.5"},{"type":"list-like","open":"<span class='clj-list'>(</span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>*</span>","value":"*"},{"type":"html","content":"<span class='clj-symbol'>theta-dot</span>","value":"theta-dot"},{"type":"html","content":"<span class='clj-symbol'>theta-dot</span>","value":"theta-dot"}],"value":"(* theta-dot theta-dot)"}],"value":"(* 0.5 (* theta-dot theta-dot))"}],"value":"(- (- (Math/cos theta-dot) (* theta theta)) (* 0.5 (* theta-dot theta-dot)))"},{"type":"list-like","open":"<span class='clj-list'>(</span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>*</span>","value":"*"},{"type":"html","content":"<span class='clj-symbol'>theta</span>","value":"theta"},{"type":"list-like","open":"<span class='clj-list'>(</span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-symbol'>Math/sin</span>","value":"Math/sin"},{"type":"html","content":"<span class='clj-symbol'>theta</span>","value":"theta"}],"value":"(Math/sin theta)"}],"value":"(* theta (Math/sin theta))"}],"value":"(- (- (- (Math/cos theta-dot) (* theta theta)) (* 0.5 (* theta-dot theta-dot))) (* theta (Math/sin theta)))"}],"value":"[:expr (- (- (- (Math/cos theta-dot) (* theta theta)) (* 0.5 (* theta-dot theta-dot))) (* theta (Math/sin theta)))]"},{"type":"list-like","open":"","close":"","separator":" ","items":[{"type":"html","content":"<span class='clj-keyword'>:archived</span>","value":":archived"},{"type":"html","content":"<span class='clj-unkown'>false</span>","value":"false"}],"value":"[:archived false]"}],"value":"{:fitness 0, :dominated false, :score-2 -17, :score-1b -2.5989988883957267, :score-1a -1.4298429494649554, :expr (- (- (- (Math/cos theta-dot) (* theta theta)) (* 0.5 (* theta-dot theta-dot))) (* theta (Math/sin theta))), :archived false}"}
+;;; {"type":"list-like","open":"<span class='clj-lazy-seq'>(<span>","close":"<span class='clj-lazy-seq'>)</span>","separator":" ","items":[{"type":"list-like","open":"<span class='clj-list'>(<span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-long'>-25</span>","value":"-25"},{"type":"html","content":"<span class='clj-double'>-121.08231240345577</span>","value":"-121.08231240345577"}],"value":"(-25 -121.08231240345577)"},{"type":"list-like","open":"<span class='clj-list'>(<span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-long'>-39</span>","value":"-39"},{"type":"html","content":"<span class='clj-double'>-22.94067158655214</span>","value":"-22.94067158655214"}],"value":"(-39 -22.94067158655214)"},{"type":"list-like","open":"<span class='clj-list'>(<span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-long'>-13</span>","value":"-13"},{"type":"html","content":"<span class='clj-double'>-323.84956706021177</span>","value":"-323.84956706021177"}],"value":"(-13 -323.84956706021177)"},{"type":"list-like","open":"<span class='clj-list'>(<span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-long'>-11</span>","value":"-11"},{"type":"html","content":"<span class='clj-double'>-499.91849027716836</span>","value":"-499.91849027716836"}],"value":"(-11 -499.91849027716836)"},{"type":"list-like","open":"<span class='clj-list'>(<span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-long'>-9</span>","value":"-9"},{"type":"html","content":"<span class='clj-double'>-923.5148240129403</span>","value":"-923.5148240129403"}],"value":"(-9 -923.5148240129403)"},{"type":"list-like","open":"<span class='clj-list'>(<span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-long'>-33</span>","value":"-33"},{"type":"html","content":"<span class='clj-double'>-40.963819374681016</span>","value":"-40.963819374681016"}],"value":"(-33 -40.963819374681016)"},{"type":"list-like","open":"<span class='clj-list'>(<span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-long'>-23</span>","value":"-23"},{"type":"html","content":"<span class='clj-double'>-274.3226932380348</span>","value":"-274.3226932380348"}],"value":"(-23 -274.3226932380348)"},{"type":"list-like","open":"<span class='clj-list'>(<span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-long'>-5</span>","value":"-5"},{"type":"html","content":"<span class='clj-long'>-1860</span>","value":"-1860"}],"value":"(-5 -1860)"},{"type":"list-like","open":"<span class='clj-list'>(<span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-long'>-1</span>","value":"-1"},{"type":"html","content":"<span class='clj-long'>-3936</span>","value":"-3936"}],"value":"(-1 -3936)"},{"type":"list-like","open":"<span class='clj-list'>(<span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-long'>-7</span>","value":"-7"},{"type":"html","content":"<span class='clj-double'>-1049.8361590222314</span>","value":"-1049.8361590222314"}],"value":"(-7 -1049.8361590222314)"},{"type":"list-like","open":"<span class='clj-list'>(<span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-long'>-29</span>","value":"-29"},{"type":"html","content":"<span class='clj-double'>-62.59402963461341</span>","value":"-62.59402963461341"}],"value":"(-29 -62.59402963461341)"},{"type":"list-like","open":"<span class='clj-list'>(<span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-long'>-27</span>","value":"-27"},{"type":"html","content":"<span class='clj-double'>-88.74206709993713</span>","value":"-88.74206709993713"}],"value":"(-27 -88.74206709993713)"},{"type":"list-like","open":"<span class='clj-list'>(<span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-long'>-31</span>","value":"-31"},{"type":"html","content":"<span class='clj-double'>-44.00342134475218</span>","value":"-44.00342134475218"}],"value":"(-31 -44.00342134475218)"},{"type":"list-like","open":"<span class='clj-list'>(<span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-long'>-41</span>","value":"-41"},{"type":"html","content":"<span class='clj-double'>-22.77634652603482</span>","value":"-22.77634652603482"}],"value":"(-41 -22.77634652603482)"},{"type":"list-like","open":"<span class='clj-list'>(<span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-long'>-3</span>","value":"-3"},{"type":"html","content":"<span class='clj-long'>-3856</span>","value":"-3856"}],"value":"(-3 -3856)"},{"type":"list-like","open":"<span class='clj-list'>(<span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-long'>-37</span>","value":"-37"},{"type":"html","content":"<span class='clj-double'>-40.274696158379435</span>","value":"-40.274696158379435"}],"value":"(-37 -40.274696158379435)"},{"type":"list-like","open":"<span class='clj-list'>(<span>","close":"<span class='clj-list'>)</span>","separator":" ","items":[{"type":"html","content":"<span class='clj-long'>-49</span>","value":"-49"},{"type":"html","content":"<span class='clj-double'>-22.776346526034814</span>","value":"-22.776346526034814"}],"value":"(-49 -22.776346526034814)"}],"value":"((-25 -121.08231240345577) (-39 -22.94067158655214) (-13 -323.84956706021177) (-11 -499.91849027716836) (-9 -923.5148240129403) (-33 -40.963819374681016) (-23 -274.3226932380348) (-5 -1860) (-1 -3936) (-7 -1049.8361590222314) (-29 -62.59402963461341) (-27 -88.74206709993713) (-31 -44.00342134475218) (-41 -22.77634652603482) (-3 -3856) (-37 -40.274696158379435) (-49 -22.776346526034814))"}
 ;; <=
 
 ;; @@
-;; plot expression as function of time.
-(list-plot
- (let [f (functionalise-theta (:expr (nth sorted-pareto-front-individuals-1a 1)))]
-    (map #(f (second %) (nth % 2)) first-deriv-pair)) :joined true)
+(mathematician-view (:expr (nth sorted-pareto-front-individuals 11)))
 ;; @@
 ;; =>
-;;; {"type":"vega","content":{"axes":[{"type":"x","scale":"x"},{"type":"y","scale":"y"}],"scales":[{"name":"x","type":"linear","range":"width","zero":false,"domain":{"data":"9d0db5c6-9434-4e55-b96c-2ab59dc9a3d6","field":"data.x"}},{"name":"y","type":"linear","range":"height","nice":true,"zero":false,"domain":{"data":"9d0db5c6-9434-4e55-b96c-2ab59dc9a3d6","field":"data.y"}}],"marks":[{"type":"line","from":{"data":"9d0db5c6-9434-4e55-b96c-2ab59dc9a3d6"},"properties":{"enter":{"x":{"field":"data.x","scale":"x"},"y":{"field":"data.y","scale":"y"},"stroke":{"value":"#FF29D2"},"strokeWidth":{"value":2},"strokeOpacity":{"value":1}}}}],"data":[{"name":"9d0db5c6-9434-4e55-b96c-2ab59dc9a3d6","values":[{"x":0,"y":0.75},{"x":1,"y":0.7533523901289974},{"x":2,"y":0.7551598868858342},{"x":3,"y":0.7548490540678546},{"x":4,"y":0.7511721234358609},{"x":5,"y":0.7510646873219909},{"x":6,"y":0.7548062344637376},{"x":7,"y":0.7551617697156543},{"x":8,"y":0.7534623766921691},{"x":9,"y":0.7500035312173666},{"x":10,"y":0.7532398382114833},{"x":11,"y":0.7551573719327201},{"x":12,"y":0.7548882563548758},{"x":13,"y":0.7512827443129481},{"x":14,"y":0.750960767464169},{"x":15,"y":0.7547597348550759},{"x":16,"y":0.7551630777232664},{"x":17,"y":0.753569507206971},{"x":18,"y":0.7500139868424425},{"x":19,"y":0.7531248442603741},{"x":20,"y":0.755154028347918},{"x":21,"y":0.7549240954774978},{"x":22,"y":0.751396239578329},{"x":23,"y":0.7508607221137082},{"x":24,"y":0.7547094856307438},{"x":25,"y":0.7551639598823032},{"x":26,"y":0.7536736087328411},{"x":27,"y":0.7500313876991079},{"x":28,"y":0.7530077220896964},{"x":29,"y":0.7551497656755526},{"x":30,"y":0.7549566458352706}]}],"width":400,"height":247.2187957763672,"padding":{"bottom":20,"top":10,"right":10,"left":50}},"value":"#gorilla_repl.vega.VegaView{:content {:axes [{:type \"x\", :scale \"x\"} {:type \"y\", :scale \"y\"}], :scales [{:name \"x\", :type \"linear\", :range \"width\", :zero false, :domain {:data \"9d0db5c6-9434-4e55-b96c-2ab59dc9a3d6\", :field \"data.x\"}} {:name \"y\", :type \"linear\", :range \"height\", :nice true, :zero false, :domain {:data \"9d0db5c6-9434-4e55-b96c-2ab59dc9a3d6\", :field \"data.y\"}}], :marks [{:type \"line\", :from {:data \"9d0db5c6-9434-4e55-b96c-2ab59dc9a3d6\"}, :properties {:enter {:x {:field \"data.x\", :scale \"x\"}, :y {:field \"data.y\", :scale \"y\"}, :stroke {:value \"#FF29D2\"}, :strokeWidth {:value 2}, :strokeOpacity {:value 1}}}}], :data [{:name \"9d0db5c6-9434-4e55-b96c-2ab59dc9a3d6\", :values ({:x 0, :y 0.75} {:x 1, :y 0.7533523901289974} {:x 2, :y 0.7551598868858342} {:x 3, :y 0.7548490540678546} {:x 4, :y 0.7511721234358609} {:x 5, :y 0.7510646873219909} {:x 6, :y 0.7548062344637376} {:x 7, :y 0.7551617697156543} {:x 8, :y 0.7534623766921691} {:x 9, :y 0.7500035312173666} {:x 10, :y 0.7532398382114833} {:x 11, :y 0.7551573719327201} {:x 12, :y 0.7548882563548758} {:x 13, :y 0.7512827443129481} {:x 14, :y 0.750960767464169} {:x 15, :y 0.7547597348550759} {:x 16, :y 0.7551630777232664} {:x 17, :y 0.753569507206971} {:x 18, :y 0.7500139868424425} {:x 19, :y 0.7531248442603741} {:x 20, :y 0.755154028347918} {:x 21, :y 0.7549240954774978} {:x 22, :y 0.751396239578329} {:x 23, :y 0.7508607221137082} {:x 24, :y 0.7547094856307438} {:x 25, :y 0.7551639598823032} {:x 26, :y 0.7536736087328411} {:x 27, :y 0.7500313876991079} {:x 28, :y 0.7530077220896964} {:x 29, :y 0.7551497656755526} {:x 30, :y 0.7549566458352706})}], :width 400, :height 247.2188, :padding {:bottom 20, :top 10, :right 10, :left 50}}}"}
+;;; {"type":"latex","content":"(1.935 + (x + 1.935)) \\cdot (x - 1.488) \\cdot x","value":"#sym_regression_project.render.ExprLatexView{:expr (* (* (+ 1.9351537886418753 (+ x 1.9351537886418753)) (- x 1.4882514334006216)) x)}"}
 ;; <=
+
+;; @@
+
+;; @@
+
+;; @@
+
+;; @@
